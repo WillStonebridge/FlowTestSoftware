@@ -1,0 +1,14 @@
+# build
+__pycache__/**
+.vscode/**
+
+ToDo.txt
+
+# Data
+*.csv
+*.xlsx
+#Data files/**
+Data files backups/**
+#build/**
+Releases/**
+

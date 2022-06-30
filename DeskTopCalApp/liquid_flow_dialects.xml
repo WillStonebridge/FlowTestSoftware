@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<mavlink>
+    <version>1</version>
+
+    <enums>
+
+        <enum name="SENSOR_DATA_TYPE">
+            <description>Type of sensor data</description>
+
+            <entry value="0" name="SENSOR_DATA_TYPE_RAW">
+                <description>Raw uncorrected data</description>
+            </entry>
+
+            <entry value="1" name="SENSOR_DATA_TYPE_FLOW">
+                <description>Sensor Corrected Flow data</description>
+            </entry>
+
+            <entry value="2" name="SENSOR_DATA_TYPE_BOTH">
+                <description>Both Raw and Corrected Flow data</description>
+            </entry>
+        </enum>
+
+    </enums>
+
+    <messages>
+
+        <message id = "1" name = "write_segment_coeffs">
+            <description>Write coefficients of a spline</description>
+
+            <field type="uint32_t" name="segment_id" >ID of the segment to be written</field>
+            <field type="uint8_t[16]" name="data" >4 float coefficients</field>
+        </message>
+
+        <message id = "2" name = "read_segment_coeffs">
+            <description>Read coefficients of a spline</description>
+
+            <field type="uint32_t" name="segment_id" >ID of the segment to be read</field>
+        </message>
+
+        <message id = "51" name = "response_read_segment_coeffs">
+            <description>Response for a read coefficients command</description>
+
+            <field type="uint32_t" name="segment_id" >ID of the segment</field>
+            <field type="uint8_t[16]" name="data" >4 float coefficients</field>
+         </message>
+
+        <message id = "101" name = "configure_data_stream">
+            <description>Configure frequency to read the flow data and to initiate the data read</description>
+
+            <field type="uint8_t" name="sensor_data_type" >Type of sensor data to be streamed</field>
+            <field type="uint16_t" name="frequency" >frequency to read the data from sensor</field>
+        </message>
+
+        <message id = "151" name = "response_sensor_raw_data">
+            <description>Configure frequency of reading flow data and to initiate the data read</description>
+
+            <field type="int32_t" name="senosr_raw_data" >Raw Sensor data</field>
+        </message>
+
+        <message id = "152" name = "response_sensor_flow_data">
+            <description>Configure frequency of reading flow data and to initiate the data read</description>
+
+            <field type="int32_t" name="senosr_flow_data" >Sensor Corrected Flow data</field>
+        </message>
+
+        <message id = "153" name = "response_sensor_both_data">
+            <description>Configure frequency of reading flow data and to initiate the data read</description>
+
+            <field type="int32_t" name="senosr_flow_data" >Sensor Corrected Flow data</field>
+            <field type="int32_t" name="senosr_raw_data" >Raw Sensor data</field>
+        </message>
+
+    </messages>
+</mavlink>
