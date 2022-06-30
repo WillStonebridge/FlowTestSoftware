@@ -102,7 +102,7 @@ class Input_Panel:
         self.timer_ticks = 0
         self.calibration_filename = None
 
-        self.log_file = 'Data Files'
+        self.log_file = 'Data files'
 
         self.mav_stream_type_dictionary = {
                 'Raw Data' : SENSOR_DATA_TYPE_RAW,
@@ -249,10 +249,7 @@ class Input_Panel:
         elif self.sampling_freq < 0:
             self.sampling_freq = 0
 
-        folder_name = 'Data files'
-        if(self.log_file):
-            folder_name = self.log_file
-        self.data_handler = Monitor_Test_Data_Handler(self.parent, folder_name, self.sampling_freq, 5)
+        self.data_handler = Monitor_Test_Data_Handler(self.parent, self.log_file, self.sampling_freq, 5)
 
         self.mavlink_handler = MAVLink_Handler(self.sensor_serial_handler, 1, 2, self.data_handler)
 

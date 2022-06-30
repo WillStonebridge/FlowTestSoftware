@@ -407,7 +407,11 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler) :
         self.max_buffer_len = int(time_period_to_display_data * self.sampling_frequency)
 
         self.clock = Time_Clock(self.sampling_frequency)
-        self.discrete_data_logger_file_name = "../" + folder_name + "/" + str(time.strftime("%d %b %Y %H_%M_%S", time.localtime()))
+
+        if folder_name != 'Data files':
+            self.discrete_data_logger_file_name = folder_name
+        else:
+            self.discrete_data_logger_file_name = "../" + folder_name + "/" + str(time.strftime("%d %b %Y %H_%M_%S", time.localtime()))
         self.discrete_data_fields = ['Time [ms]', 'Timestamp', 'Raw Value', 'Corrected Value', 'Temperature Value',
                                 'LD20 Flow', 'LD20 Temperature', 'LD20 Status',
                                 'Heater Voltage', 'Thermistor Voltage', 'Heater Current', 'Thermistor Current', 'Series R Voltage']
