@@ -452,6 +452,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler) :
 
 
     def add_entry_sensor_data(self, lost_entries, raw_value, corrected_value, temperature_value) :
+
         corrected_value = (corrected_value - 2 ** 23) / 2 ** 24 * 600 / .8
         self.clock.advance_number_of_ticks(lost_entries + 1)
         self.graph.append_values(float(self.clock.get_elapsed_milli_sec()/1000.0), int(raw_value), self.sensirion_flow/20.0, corrected_value)
