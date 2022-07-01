@@ -30,8 +30,9 @@ import subprocess
 from convert_csv_excel import create_matlab_input_file
 import openpyxl
 
+
 class Main_Application(tk.Frame):
-    def __init__(self, parent, title) :
+    def __init__(self, parent, title):
         tk.Frame.__init__(self, parent, background="#ffffff")
         self.pack(fill=tk.BOTH, expand=1)
 
@@ -40,9 +41,7 @@ class Main_Application(tk.Frame):
         self.parent.title(title)
         self.parent.style = ttk.Style(self)
 
-
         self.canvas = tk.Canvas(self, borderwidth=0, background="#ffffff")
-
 
         self.vsb = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.vsb.pack(side=RIGHT, fill=tk.Y)
@@ -52,43 +51,39 @@ class Main_Application(tk.Frame):
 
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         self.canvas.configure(yscrollcommand=self.vsb.set, xscrollcommand=self.hsb.set)
-        #self.canvas.bind("<Configure>", lambda e : self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        # self.canvas.bind("<Configure>", lambda e : self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
         self.frame = tk.Frame(self.canvas, background="#ffffff")
-        self.frame_id = self.canvas.create_window((0,0), window=self.frame, anchor="nw", tags="self.frame")
+        self.frame_id = self.canvas.create_window((0, 0), window=self.frame, anchor="nw", tags="self.frame")
         self.frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
-
 
     def onFrameConfigure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-
     def set_window_size(self, window_height, window_width):
         screen_width = self.parent.winfo_screenwidth()
         screen_height = self.parent.winfo_screenheight()
-        x_cordinate = int((screen_width/2) - (window_width/2))
-        y_cordinate = int((screen_height/2) - (window_height/2))
+        x_cordinate = int((screen_width / 2) - (window_width / 2))
+        y_cordinate = int((screen_height / 2) - (window_height / 2))
         self.parent.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
         self.parent.state('zoomed')
-
 
     def set_style(self, style_name):
         self.parent.style.theme_use(style_name)
         self.parent['bg'] = 'white'
 
-
-    def create_frames(self) :
+    def create_frames(self):
         self.logo_frame = tk.Frame(self.frame, background="#ffffff")
         self.logo = Logo_Title(self.logo_frame)
         self.panel_frame = tk.Frame(self.frame, background="#ffffff")
         self.input_panel = Input_Panel(self.panel_frame, self)
 
-        self.logo_frame.grid(row = 0, column= 0, sticky=tk.NW)
-        self.panel_frame.grid(row = 1, column= 0, sticky=tk.NW)
+        self.logo_frame.grid(row=0, column=0, sticky=tk.NW)
+        self.panel_frame.grid(row=1, column=0, sticky=tk.NW)
 
 
 class Input_Panel:
-    def __init__(self, parent, t_app) :
+    def __init__(self, parent, t_app):
         self.fonts = User_Fonts()
         self.parent = parent
         self.app = t_app
@@ -105,40 +100,44 @@ class Input_Panel:
         self.log_file = 'Data files'
 
         self.mav_stream_type_dictionary = {
-                'Raw Data' : SENSOR_DATA_TYPE_RAW,
-                'Corrected Data' : SENSOR_DATA_TYPE_FLOW,
-                'Both Data' : SENSOR_DATA_TYPE_BOTH,
+            'Raw Data': SENSOR_DATA_TYPE_RAW,
+            'Corrected Data': SENSOR_DATA_TYPE_FLOW,
+            'Both Data': SENSOR_DATA_TYPE_BOTH,
         }
 
         self.create()
 
         self.state_list = [
-            State(name = 'idle',                on_enter = [],                                      on_exit = []),
-            State(name = 'run_monitor_test',    on_enter = ['callback_on_enter_run_monitor_test'],  on_exit = ['callback_on_exit_run_monitor_test']),
-            State(name = 'run_char_test',       on_enter = [],                                      on_exit = []),
-            State(name = 'pause_char_test',     on_enter = [],                                      on_exit = []),
+            State(name='idle', on_enter=[], on_exit=[]),
+            State(name='run_monitor_test', on_enter=['callback_on_enter_run_monitor_test'],
+                  on_exit=['callback_on_exit_run_monitor_test']),
+            State(name='run_char_test', on_enter=[], on_exit=[]),
+            State(name='pause_char_test', on_enter=[], on_exit=[]),
         ]
 
         self.transition_list = [
-            { 'trigger': 'start_monitor_test',      'source': 'idle',                   'dest': 'run_monitor_test'},
-            { 'trigger': 'stop_monitor_test',       'source': 'run_monitor_test',       'dest': 'idle'},
-            { 'trigger': 'start_char_test',         'source': 'idle',                   'dest': 'run_char_test',         'after': 'callback_on_enter_run_char_test'},
-            { 'trigger': 'stop_char_test',          'source': ['run_char_test',
-                                                               'pause_char_test'],      'dest': 'idle',                  'after': 'callback_on_exit_run_char_test'},
-            { 'trigger': 'pause_char_test',         'source': 'run_char_test',          'dest': 'pause_char_test',       'after': 'callback_on_enter_pause_char_test'},
-            { 'trigger': 'resume_char_test',        'source': 'pause_char_test',        'dest': 'run_char_test',         'after': 'callback_on_exit_pause_char_test'}
+            {'trigger': 'start_monitor_test', 'source': 'idle', 'dest': 'run_monitor_test'},
+            {'trigger': 'stop_monitor_test', 'source': 'run_monitor_test', 'dest': 'idle'},
+            {'trigger': 'start_char_test', 'source': 'idle', 'dest': 'run_char_test',
+             'after': 'callback_on_enter_run_char_test'},
+            {'trigger': 'stop_char_test', 'source': ['run_char_test',
+                                                     'pause_char_test'], 'dest': 'idle',
+             'after': 'callback_on_exit_run_char_test'},
+            {'trigger': 'pause_char_test', 'source': 'run_char_test', 'dest': 'pause_char_test',
+             'after': 'callback_on_enter_pause_char_test'},
+            {'trigger': 'resume_char_test', 'source': 'pause_char_test', 'dest': 'run_char_test',
+             'after': 'callback_on_exit_pause_char_test'}
         ]
 
-        self.state_machine = Machine(model = self, states = self.state_list, transitions = self.transition_list, initial = 'idle')
+        self.state_machine = Machine(model=self, states=self.state_list, transitions=self.transition_list,
+                                     initial='idle')
 
-
-    def create(self) :
+    def create(self):
         self.input_panel = Module(self.parent, 'Input Panel', 500, 690, 'red')
         self.flow_panel = Module(self.parent, 'Flow Control Panel', 300, 690, 'red')
 
-        self.input_panel.grid(row=0, column=0, sticky = tk.NW, padx=(15,15), rowspan=2)
-        self.flow_panel.grid(row=0, column=2, sticky = tk.NE, padx=(15,15), rowspan=2)
-
+        self.input_panel.grid(row=0, column=0, sticky=tk.NW, padx=(15, 15), rowspan=2)
+        self.flow_panel.grid(row=0, column=2, sticky=tk.NE, padx=(15, 15), rowspan=2)
 
         self.sensor_detail = Module(self.input_panel, 'Liquid Flow Sensor', 280, 170)
         self.cb_sensor_com = Combo_Box(self.sensor_detail, 'COM Port', self.portinfo)
@@ -146,20 +145,20 @@ class Input_Panel:
         self.ic_sensor_status = Indicator(self.sensor_detail, 'Connection Status', 'Connected', 'Not Connected')
 
         self.cb_sensor_com.place(10, 10)
-        self.pb_detect.place(10,65)
-        self.ic_sensor_status.place(10,95)
+        self.pb_detect.place(10, 65)
+        self.ic_sensor_status.place(10, 95)
 
         self.test_control = Module(self.input_panel, 'Monitor Test Control', 280, 275)
-        self.cb_sensor_data_type = Combo_Box(self.test_control, 'Sensor Data Type', ['Raw Data', 'Corrected Data', 'Both Data'], self.callback_cb_sensor_type)
+        self.cb_sensor_data_type = Combo_Box(self.test_control, 'Sensor Data Type',
+                                             ['Raw Data', 'Corrected Data', 'Both Data'], self.callback_cb_sensor_type)
         self.ti_sensor_data_freq = Text_Input(self.test_control, 'Sensor Data frequency [0-1000]')
         self.chb_sensirion_enable = Check_Button(self.test_control, 'LD20 Data')
         self.chb_heater_control_data_enable = Check_Button(self.test_control, 'Heater Control Data')
         self.pb_start_test = Push_Button(self.test_control, 'Start Test', self.callback_control_start_test)
         self.pb_stop_test = Push_Button(self.test_control, 'Stop Test', self.callback_control_stop_test)
         self.ic_test_status = Indicator(self.test_control, 'Test Status', 'Running', 'Stopped')
-        self.pb_log_dir = tk.Button(self.test_control, text="Log File Location", command= self.select_log_file)
-        self.log_file_display = tk.Label(self.test_control, text=self.log_file, wraplength= 150, background="#ffffff")
-
+        self.pb_log_dir = tk.Button(self.test_control, text="Log File Location", command=self.select_log_file)
+        self.log_file_display = tk.Label(self.test_control, text=self.log_file, wraplength=150, background="#ffffff")
 
         x = 10
         self.cb_sensor_data_type.place(10, x)
@@ -177,15 +176,17 @@ class Input_Panel:
         x = x + 30
         self.ic_test_status.place(10, x)
 
-
         self.char_test_control = Module(self.input_panel, 'Char Test Control', 180, 330)
-        self.pb_char_start_test = Push_Button(self.char_test_control, 'Start Test', self.callback_control_char_start_test)
+        self.pb_char_start_test = Push_Button(self.char_test_control, 'Start Test',
+                                              self.callback_control_char_start_test)
         self.pb_char_stop_test = Push_Button(self.char_test_control, 'Stop Test', self.callback_control_char_stop_test)
-        self.pb_char_pause_test = Push_Button(self.char_test_control, 'Pause Test', self.callback_control_char_pause_test)
-        self.pb_char_resume_test = Push_Button(self.char_test_control, 'Resume Test', self.callback_control_char_resume_test)
+        self.pb_char_pause_test = Push_Button(self.char_test_control, 'Pause Test',
+                                              self.callback_control_char_pause_test)
+        self.pb_char_resume_test = Push_Button(self.char_test_control, 'Resume Test',
+                                               self.callback_control_char_resume_test)
         self.ic_char_test_status = Indicator(self.char_test_control, 'Test Status', 'Running', 'Stopped')
-        self.id_char_test_stage = Indicator(self.char_test_control, 'Test Stage', 'Running', 'Stopped', 'Light Grey', 20, 3, tk.NW)
-
+        self.id_char_test_stage = Indicator(self.char_test_control, 'Test Stage', 'Running', 'Stopped', 'Light Grey',
+                                            20, 3, tk.NW)
 
         x = 10
         self.pb_char_start_test.place(10, x)
@@ -200,14 +201,13 @@ class Input_Panel:
         x = x + 50
         self.id_char_test_stage.place(10, x)
 
-
         self.flow_comms = Module(self.input_panel, 'Flow Controller', 280, 170)
         self.portinfo.append('00363558')
         self.cb_fc_com = Combo_Box(self.flow_comms, 'COM port/Serial Number', self.portinfo)
         self.pb_connect = Push_Button(self.flow_comms, 'Connect', self.callback_control_connect)
         self.ic_fc_status = Indicator(self.flow_comms, 'Connection Status', 'Connected', 'Not Connected')
 
-        self.cb_fc_com.place(10,10)
+        self.cb_fc_com.place(10, 10)
         self.pb_connect.place(10, 65)
         self.ic_fc_status.place(10, 95)
         self.cb_sensor_data_type.set_index(2)
@@ -228,18 +228,19 @@ class Input_Panel:
         x = x + 40
         self.ti_serial_number.place(10, x)
 
-        self.sensor_detail.place(x = 10, y = 10)
-        self.flow_comms.place(x = 10, y = 190)
-        self.test_control.place(x = 10, y = 370)
-        self.char_test_control.place(x = 300, y = 10)
-        self.fram_control.place(x = 300, y = 370)
+        self.sensor_detail.place(x=10, y=10)
+        self.flow_comms.place(x=10, y=190)
+        self.test_control.place(x=10, y=370)
+        self.char_test_control.place(x=300, y=10)
+        self.fram_control.place(x=300, y=370)
 
         self.syringe_pump1 = Flow_Controller(self.flow_panel, 'Syringe Pump 1', 1)
-        self.syringe_pump2 = Flow_Controller(self.flow_panel, 'Syringe Pump 2', 2)
+        self.syringe_pump2 = Flow_Controller(self.flow_panel, 'Syringe Pump 2', 1)
+        self.data_smoothing = Data_Smoothing(self.flow_panel, 'Data Smoothing')
 
         self.syringe_pump1.module.place(x=10, y=10)
-        #self.syringe_pump2.module.place(x = 10, y = 330)
-
+        self.data_smoothing.module.place(x=10, y=330)
+        # self.syringe_pump2.module.place(x = 10, y = 330)
 
     def callback_on_enter_run_monitor_test(self):
         self.sampling_freq = int(self.ti_sensor_data_freq.get())
@@ -255,26 +256,24 @@ class Input_Panel:
 
         self.ic_test_status.make_true()
 
-
-        self.mavlink_handler.mavlink.configure_heater_control_data_stream_send(self.chb_heater_control_data_enable.get_value(), 100)
+        self.mavlink_handler.mavlink.configure_heater_control_data_stream_send(
+            self.chb_heater_control_data_enable.get_value(), 100)
         self.mavlink_handler.mavlink.configure_sensirion_data_stream_send(self.chb_sensirion_enable.get_value())
         self.mavlink_handler.mavlink.configure_data_stream_send(
-                            self.mav_stream_type_dictionary[self.cb_sensor_data_type.get_value()], self.sampling_freq)
+            self.mav_stream_type_dictionary[self.cb_sensor_data_type.get_value()], self.sampling_freq)
 
         self.data_handler.capture_timestamp_for_data_logging_about_to_start()
 
         self.timer_interrupt_handler()
 
-
-    def callback_on_exit_run_monitor_test(self) :
+    def callback_on_exit_run_monitor_test(self):
         self.mavlink_handler.mavlink.configure_data_stream_send(self.mav_stream_type_dictionary['Both Data'], 0)
         time.sleep(1)
         self.mavlink_handler.parse_received_data()
         self.data_handler.close_files()
         self.ic_test_status.make_false()
 
-
-    def callback_on_enter_run_char_test(self) :
+    def callback_on_enter_run_char_test(self):
         self.char_test_specs = Test_Spec_TypeDef("test_specs.txt")
 
         self.test_count = 0
@@ -282,10 +281,10 @@ class Input_Panel:
         self.current_flow_point = 0
 
         self.sampling_freq = self.char_test_specs.sampling_frequency
-        if self.sampling_freq > 1000 :
+        if self.sampling_freq > 1000:
             self.sampling_freq = 1000
 
-        elif self.sampling_freq < 0 :
+        elif self.sampling_freq < 0:
             self.sampling_freq = 0
 
         self.stop_pump_at_ticks = 0
@@ -296,41 +295,47 @@ class Input_Panel:
 
         folder_name = "Data files\\Char Test Data"
         self.data_handler = Char_Test_Data_Handler(self.parent, folder_name, self.sampling_freq,
-                            self.char_test_specs.flow_settling_time, self.char_test_specs.flow_capture_time,
-                            self.char_test_specs.flow_points, self.char_test_specs.log_discrete_data)
+                                                   self.char_test_specs.flow_settling_time,
+                                                   self.char_test_specs.flow_capture_time,
+                                                   self.char_test_specs.flow_points,
+                                                   self.char_test_specs.log_discrete_data)
 
         self.data_handler.update_new_temp_point(self.char_test_specs.temperature_points[self.current_temp_point])
         self.data_handler.update_test_count(self.test_count)
 
-        if self.char_test_specs.syringe_pump == 1 :
+        if self.char_test_specs.syringe_pump == 1:
             self.ref_char_test_syringe_pump = self.syringe_pump1
-        else :
+        else:
             self.ref_char_test_syringe_pump = self.syringe_pump2
 
         self.ref_char_test_syringe_pump.update_syringe_inner_dia(self.char_test_specs.syringe_inner_dia)
         self.ref_char_test_syringe_pump.update_flow_rate_unit('mL/hr')
 
-
-        self.status_string_flow = "Flow \t" + str(self.char_test_specs.flow_points[self.current_flow_point]) + "\t" + str(self.current_flow_point+1) + "\\" + str(self.char_test_specs.flow_points_count) + "\n"
-        self.status_string_test = "Test \t" + str(self.test_count+1) + "\t" + str(self.test_count+1) + "\\" + str(self.char_test_specs.numbers_of_test)
-        self.status_string_temp = "Temp \t" + str(self.char_test_specs.temperature_points[self.current_temp_point]) + "\t" + str(self.current_temp_point+1) + "\\" + str(self.char_test_specs.temperature_points_count) + "\n"
+        self.status_string_flow = "Flow \t" + str(
+            self.char_test_specs.flow_points[self.current_flow_point]) + "\t" + str(
+            self.current_flow_point + 1) + "\\" + str(self.char_test_specs.flow_points_count) + "\n"
+        self.status_string_test = "Test \t" + str(self.test_count + 1) + "\t" + str(self.test_count + 1) + "\\" + str(
+            self.char_test_specs.numbers_of_test)
+        self.status_string_temp = "Temp \t" + str(
+            self.char_test_specs.temperature_points[self.current_temp_point]) + "\t" + str(
+            self.current_temp_point + 1) + "\\" + str(self.char_test_specs.temperature_points_count) + "\n"
         self.id_char_test_stage.write_value(self.status_string_flow + self.status_string_temp + self.status_string_test)
 
         self.ic_char_test_status.make_true()
 
         self.mavlink_handler = MAVLink_Handler(self.sensor_serial_handler, 1, 2, self.data_handler)
-        if self.char_test_specs.ld20_data != 0 :
+        if self.char_test_specs.ld20_data != 0:
             self.mavlink_handler.mavlink.configure_sensirion_data_stream_send(1)
 
-        if self.char_test_specs.heater_control_data != 0 :
+        if self.char_test_specs.heater_control_data != 0:
             self.mavlink_handler.mavlink.configure_heater_control_data_stream_send(1, 100)
 
-        self.mavlink_handler.mavlink.configure_data_stream_send(self.mav_stream_type_dictionary['Both Data'], self.sampling_freq)
+        self.mavlink_handler.mavlink.configure_data_stream_send(self.mav_stream_type_dictionary['Both Data'],
+                                                                self.sampling_freq)
         self.data_handler.capture_timestamp_for_data_logging_about_to_start()
         self.timer_interrupt_handler()
 
-
-    def callback_on_exit_run_char_test(self) :
+    def callback_on_exit_run_char_test(self):
         self.mavlink_handler.mavlink.configure_data_stream_send(self.mav_stream_type_dictionary['Both Data'], 0)
         self.data_handler.close_files()
         self.update_pump_flow_rate_volume(0, 15)
@@ -338,17 +343,16 @@ class Input_Panel:
         max_flow = max(self.char_test_specs.flow_points)
         print(max_flow, type(max_flow))
         self.calibration_filename = self.data_handler.char_data_file_name
-        create_matlab_input_file(self.ti_serial_number.get(), self.calibration_filename, self.char_test_specs.flow_points_count, max_flow)
+        create_matlab_input_file(self.ti_serial_number.get(), self.calibration_filename,
+                                 self.char_test_specs.flow_points_count, max_flow)
 
-
-    def callback_on_enter_pause_char_test(self) :
+    def callback_on_enter_pause_char_test(self):
         self.data_handler.hault_test()
         self.update_pump_flow_rate_volume(0, 15)
         self.ic_char_test_status.write_value_bg('Paused', 'orange')
         pass
 
-
-    def callback_on_exit_pause_char_test(self) :
+    def callback_on_exit_pause_char_test(self):
         self.current_flow_point -= 1
         self.update_pump_flow_rate_volume(self.char_test_specs.flow_points[self.current_flow_point], 15)
         self.ic_char_test_status.make_true()
@@ -358,9 +362,8 @@ class Input_Panel:
         self.current_flow_point += 1
         pass
 
-
-    def timer_interrupt_handler(self) :
-        if self.state == 'run_monitor_test' :
+    def timer_interrupt_handler(self):
+        if self.state == 'run_monitor_test':
             self.mavlink_handler.parse_received_data()
             self.data_handler.update_plot()
             self.app.after(100, self.timer_interrupt_handler)
@@ -368,86 +371,96 @@ class Input_Panel:
         elif self.state == 'run_char_test':
             self.mavlink_handler.parse_received_data()
 
-            if self.current_flow_point <= self.char_test_specs.flow_points_count :
-                if self.data_handler.is_one_point_completed() == 1 :
-                    if self.current_flow_point < self.char_test_specs.flow_points_count :
-                        self.status_string_flow = "Flow \t" + str(self.char_test_specs.flow_points[self.current_flow_point]) + "\t" + str(self.current_flow_point+1) + "\\" + str(self.char_test_specs.flow_points_count) + "\n"
-                        self.id_char_test_stage.write_value(self.status_string_flow + self.status_string_temp + self.status_string_test)
+            if self.current_flow_point <= self.char_test_specs.flow_points_count:
+                if self.data_handler.is_one_point_completed() == 1:
+                    if self.current_flow_point < self.char_test_specs.flow_points_count:
+                        self.status_string_flow = "Flow \t" + str(
+                            self.char_test_specs.flow_points[self.current_flow_point]) + "\t" + str(
+                            self.current_flow_point + 1) + "\\" + str(self.char_test_specs.flow_points_count) + "\n"
+                        self.id_char_test_stage.write_value(
+                            self.status_string_flow + self.status_string_temp + self.status_string_test)
 
                         self.update_pump_flow_rate_volume(self.char_test_specs.flow_points[self.current_flow_point], 15)
                         self.mavlink_handler.parse_received_data()
-                        self.data_handler.update_new_flow_point(self.char_test_specs.flow_points[self.current_flow_point])
-
+                        self.data_handler.update_new_flow_point(
+                            self.char_test_specs.flow_points[self.current_flow_point])
 
                         if self.current_flow_point == 0:
-                            if (self.char_test_specs.initial_warm_up_run_flow_duration != 0) and (self.initial_warm_up_run_at_first_cycle !=0) :
+                            if (self.char_test_specs.initial_warm_up_run_flow_duration != 0) and (
+                                    self.initial_warm_up_run_at_first_cycle != 0):
                                 self.is_warm_up_flow_in_progress = 1
                                 self.pause_char_test()
-                                self.update_pump_flow_rate_volume(self.char_test_specs.initial_warm_up_run_flow_rate, 15)
-                                self.stop_pump_at_ticks = int(time.time()) + self.char_test_specs.initial_warm_up_run_flow_duration
+                                self.update_pump_flow_rate_volume(self.char_test_specs.initial_warm_up_run_flow_rate,
+                                                                  15)
+                                self.stop_pump_at_ticks = int(
+                                    time.time()) + self.char_test_specs.initial_warm_up_run_flow_duration
                                 self.initial_warm_up_run_at_first_cycle = self.char_test_specs.initial_warm_up_run_at_each_cycle
 
-                        else :
-                            if (self.previous_flow_rate == 0) :
-                                if(self.char_test_specs.flow_direction_change_warm_up_run_flow_duration != 0) :
+                        else:
+                            if (self.previous_flow_rate == 0):
+                                if (self.char_test_specs.flow_direction_change_warm_up_run_flow_duration != 0):
                                     self.is_warm_up_flow_in_progress = 1
                                     self.pause_char_test()
-                                    self.update_pump_flow_rate_volume(self.char_test_specs.flow_direction_change_warm_up_run_flow_rate, 15)
+                                    self.update_pump_flow_rate_volume(
+                                        self.char_test_specs.flow_direction_change_warm_up_run_flow_rate, 15)
                                     self.stop_pump_at_ticks = time.time() + self.char_test_specs.flow_direction_change_warm_up_run_flow_duration
 
-
                         self.previous_flow_rate = self.char_test_specs.flow_points[self.current_flow_point]
-                    self.current_flow_point +=1
+                    self.current_flow_point += 1
 
-            else :
+            else:
                 self.current_temp_point += 1
 
-                if self.current_temp_point < self.char_test_specs.temperature_points_count :
-                    self.data_handler.update_new_temp_point(self.char_test_specs.temperature_points[self.current_temp_point])
+                if self.current_temp_point < self.char_test_specs.temperature_points_count:
+                    self.data_handler.update_new_temp_point(
+                        self.char_test_specs.temperature_points[self.current_temp_point])
                     self.current_flow_point = 0
-                    self.status_string_temp = "Temp \t" + str(self.char_test_specs.temperature_points[self.current_temp_point]) + "\t" + str(self.current_temp_point+1) + "\\" + str(self.char_test_specs.temperature_points_count) + "\n"
+                    self.status_string_temp = "Temp \t" + str(
+                        self.char_test_specs.temperature_points[self.current_temp_point]) + "\t" + str(
+                        self.current_temp_point + 1) + "\\" + str(self.char_test_specs.temperature_points_count) + "\n"
 
-                else :
+                else:
                     self.test_count += 1
                     self.current_temp_point = 0
                     self.current_flow_point = 0
-                    self.status_string_test = "Test \t" + str(self.test_count+1) + "\t" + str(self.test_count+1) + "\\" + str(self.char_test_specs.numbers_of_test)
-                    self.status_string_temp = "Temp \t" + str(self.char_test_specs.temperature_points[self.current_temp_point]) + "\t" + str(self.current_temp_point+1) + "\\" + str(self.char_test_specs.temperature_points_count) + "\n"
-                    self.data_handler.update_new_temp_point(self.char_test_specs.temperature_points[self.current_temp_point])
+                    self.status_string_test = "Test \t" + str(self.test_count + 1) + "\t" + str(
+                        self.test_count + 1) + "\\" + str(self.char_test_specs.numbers_of_test)
+                    self.status_string_temp = "Temp \t" + str(
+                        self.char_test_specs.temperature_points[self.current_temp_point]) + "\t" + str(
+                        self.current_temp_point + 1) + "\\" + str(self.char_test_specs.temperature_points_count) + "\n"
+                    self.data_handler.update_new_temp_point(
+                        self.char_test_specs.temperature_points[self.current_temp_point])
 
-                    if self.test_count < self.char_test_specs.numbers_of_test :
+                    if self.test_count < self.char_test_specs.numbers_of_test:
                         self.data_handler.update_test_count(self.test_count)
 
-                    else :
+                    else:
                         self.stop_char_test()
-
 
             self.app.after(100, self.timer_interrupt_handler)
 
-        elif self.state == 'pause_char_test' :
+        elif self.state == 'pause_char_test':
             self.mavlink_handler.parse_received_data()
-            if self.is_warm_up_flow_in_progress != 0 :
-                if(int(time.time()) > self.stop_pump_at_ticks) :
+            if self.is_warm_up_flow_in_progress != 0:
+                if (int(time.time()) > self.stop_pump_at_ticks):
                     self.resume_char_test()
                     self.is_warm_up_flow_in_progress = 0
             self.app.after(100, self.timer_interrupt_handler)
 
-
-    def update_pump_flow_rate_volume(self, rate, volume) :
-        if rate == 0 :
+    def update_pump_flow_rate_volume(self, rate, volume):
+        if rate == 0:
             self.ref_char_test_syringe_pump.callback_pb_pump_stop()
 
-        elif rate < 0 :   # Fix your syringe pump driver to accept negative rates
+        elif rate < 0:  # Fix your syringe pump driver to accept negative rates
             # self.ref_char_test_syringe_pump.update_flow_rate_volume(abs(rate), -1*abs(volume))
-            self.ref_char_test_syringe_pump.update_flow_rate_volume(-1*abs(rate), -1*abs(volume))
+            self.ref_char_test_syringe_pump.update_flow_rate_volume(-1 * abs(rate), -1 * abs(volume))
 
-        else :
+        else:
             self.ref_char_test_syringe_pump.update_flow_rate_volume(abs(rate), abs(volume))
 
-
-    def connect_sensor(self) :
-        if not self.connected_sensor :
-            try :
+    def connect_sensor(self):
+        if not self.connected_sensor:
+            try:
                 self.sensor_serial_handler = Serial_Handler(str(self.cb_sensor_com.get_value()))
             except TypeError as e:
                 return
@@ -462,11 +475,10 @@ class Input_Panel:
             self.ic_sensor_status.make_false()
             self.pb_detect.set_title("Connect")
 
-
     def connect_flow_controller(self):
         if not self.connected_flow_controller:
             self.connection_flow_controller = Connection(port=str(self.cb_fc_com.get_value()),
-                                          baudrate=9600, x=0, mode=1, verbose=False)
+                                                         baudrate=9600, x=0, mode=1, verbose=False)
 
             try:
                 self.connection_flow_controller.openConnection()
@@ -486,50 +498,42 @@ class Input_Panel:
             self.ic_fc_status.make_false()
             self.pb_connect.set_title("Connect")
 
-
-    def callback_control_connect(self) :
+    def callback_control_connect(self):
         self.connect_flow_controller()
 
-
-    def callback_control_detect(self) :
+    def callback_control_detect(self):
         self.connect_sensor()
 
-
-    def callback_control_start_test(self) :
+    def callback_control_start_test(self):
         self.start_monitor_test()
 
-
-    def callback_control_stop_test(self) :
+    def callback_control_stop_test(self):
         self.stop_monitor_test()
 
-
-    def callback_control_char_start_test(self) :
+    def callback_control_char_start_test(self):
         self.start_char_test()
 
-
-    def callback_control_char_stop_test(self) :
+    def callback_control_char_stop_test(self):
         self.stop_char_test()
 
-
-    def callback_control_char_pause_test(self) :
+    def callback_control_char_pause_test(self):
         self.pause_char_test()
 
-
-    def callback_control_char_resume_test(self) :
+    def callback_control_char_resume_test(self):
         self.resume_char_test()
 
-
-    def callback_cb_sensor_type(self, event) :
+    def callback_cb_sensor_type(self, event):
         pass
 
     def callback_fram_create_coeffs(self):
-        filetypes = (('Excel files', '*.xlsx'),('All files', '*.*'))
+        filetypes = (('Excel files', '*.xlsx'), ('All files', '*.*'))
         current_dir = os.getcwd()
         cal_dir = os.path.join(current_dir, "Data files\Char Test Data")
         print(cal_dir)
         matlab_exe_file = os.path.join(cal_dir, "Jims_ULF_TF_New.exe")
         if self.calibration_filename == None:
-            self.calibration_filename = fd.askopenfilename(title='Open Calibration file', initialdir=cal_dir, filetypes=filetypes)   #('Excel Worksheets', '*.xlsx'))
+            self.calibration_filename = fd.askopenfilename(title='Open Calibration file', initialdir=cal_dir,
+                                                           filetypes=filetypes)  # ('Excel Worksheets', '*.xlsx'))
             if self.calibration_filename != '':
                 wb = openpyxl.load_workbook(self.calibration_filename)
                 sh = wb.active
@@ -538,9 +542,9 @@ class Input_Panel:
                 self.app.update()
                 wb.close()
                 char_test_file = self.calibration_filename
-                self.calibration_filename = None    # Started as None, stay as None
+                self.calibration_filename = None  # Started as None, stay as None
             else:
-                self.calibration_filename = None    # Started as None, stay as None
+                self.calibration_filename = None  # Started as None, stay as None
                 return
         elif (self.calibration_filename != None):
             char_test_file = os.path.join(current_dir, (self.calibration_filename + '__0.xlsx'))
@@ -566,7 +570,7 @@ class Input_Panel:
         sn = self.ti_serial_number.get()
         if not len(sn) or sn == "":
             sn = "Forgot0123456789"
-        serialnum = folder_name +'\\' + sn.ljust(16, '-') + '.dat'
+        serialnum = folder_name + '\\' + sn.ljust(16, '-') + '.dat'
         print(sn)
         file = open(serialnum, "rb")
         for address in range(0, 64):
@@ -588,43 +592,71 @@ class Input_Panel:
         self.mavlink_handler = MAVLink_Handler(self.sensor_serial_handler, 1, 2, self.coeffs_handler)
         self.mavlink_handler.mavlink.set_send_callback(self.mavlink_handler.mav_msg_detected_callback)
         id = 2
-        self.mavlink_handler.mavlink.response_read_segment_coeffs_send(id, self.coeffs_handler.data, force_mavlink1=False)
+        self.mavlink_handler.mavlink.response_read_segment_coeffs_send(id, self.coeffs_handler.data,
+                                                                       force_mavlink1=False)
         # self.ic_test_status.make_true()
-#        self.timer_interrupt_handler()
+
+    #        self.timer_interrupt_handler()
 
     def select_log_file(self):
         filetypes = (
-        ('csv files', '*.csv'),
-        ('All files', '*.*'))
+            ('csv files', '*.csv'),
+            ('All files', '*.*'))
 
         self.log_file = fd.asksaveasfilename(
-            initialdir = "/",
-            title = "Choose a log location",
-            filetypes = filetypes)
+            initialdir="/",
+            title="Choose a log location",
+            filetypes=filetypes)
 
         self.log_file_display["text"] = self.log_file
 
 
-class Logo_Title :
-    def __init__(self, app) :
+class Logo_Title:
+    def __init__(self, app):
         self.fonts = User_Fonts()
         self.img = Image.open("images/Honeywell-Logo.png")
         self.img = self.img.resize((300, 60), Image.ANTIALIAS)
         self.img = ImageTk.PhotoImage(self.img)
-        self.logo = tk.Label(app, image = self.img, bg = 'white')
-        self.title = tk.Label(app, text = 'Liquid Flow Char Application', font = self.fonts.cal32, height = 1, fg = 'black', bg = 'white', bd = 2)
-        self.logo.grid(row=0,column=0,sticky = tk.W, padx = (10, 5), pady = (15, 10))
-        self.title.grid(row=0,column=2, sticky=tk.W, padx = (30, 5))
-        self.canvas = tk.Canvas(app, width = 5, height = 60, bg = 'black', highlightthickness=0, relief='ridge')
-        self.canvas.grid(row=0,column=1, padx = 5, pady = 5)
+        self.logo = tk.Label(app, image=self.img, bg='white')
+        self.title = tk.Label(app, text='Liquid Flow Char Application', font=self.fonts.cal32, height=1, fg='black',
+                              bg='white', bd=2)
+        self.logo.grid(row=0, column=0, sticky=tk.W, padx=(10, 5), pady=(15, 10))
+        self.title.grid(row=0, column=2, sticky=tk.W, padx=(30, 5))
+        self.canvas = tk.Canvas(app, width=5, height=60, bg='black', highlightthickness=0, relief='ridge')
+        self.canvas.grid(row=0, column=1, padx=5, pady=5)
 
 
+class Data_Smoothing():
+    def __init__(self, parent, title):
+        self.module = Module(parent, title, 280, 310)
+        self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform')
+        self.ema_waveform = Check_Button(self.module, 'Exponential Moving Average Waveform')
+        self.sma_k = Text_Input(self.module, "Average Window")
+        self.ema_k = Text_Input(self.module, "Average Window")
+        self.ema_s = Text_Input(self.module, "Smoothing Value")
 
-class Flow_Controller() :
-    def __init__(self, parent, title, pump) :
+        x = 30
+        self.sma_waveform.place(10, x)
+        x += 20
+        self.sma_k.place(10, x)
+        x += 100
+        self.ema_waveform.place(10, x)
+        x += 20
+        self.ema_k.place(10, x)
+        x += 40
+        self.ema_s.place(10, x)
+
+        self.sma_k.set("50")
+        self.ema_k.set("50")
+        self.ema_s.set("1")
+
+
+class Flow_Controller():
+    def __init__(self, parent, title, pump):
         self.pump = pump
         self.module = Module(parent, title, 280, 310)
-        self.cb_syringe_dia = Combo_Box(self.module, 'Syringe Diameter [mms]', ['28.60', '26.6', '23', '20.4', '19.13', '15.9','12.60', '9.53'])
+        self.cb_syringe_dia = Combo_Box(self.module, 'Syringe Diameter [mms]',
+                                        ['28.60', '26.6', '23', '20.4', '19.13', '15.9', '12.60', '9.53'])
         self.cb_flow_unit = Combo_Box(self.module, 'Flow Unit', ['mL/min', 'mL/hr', 'μL/min', 'μL/hr'])
         self.ti_flow = Text_Input(self.module, 'Flow Rate', 18, 15)
         self.ti_volume = Text_Input(self.module, 'Flow Volume', 18, 15)
@@ -635,66 +667,61 @@ class Flow_Controller() :
         self.pb_pump_update = Push_Button(self.module, 'Update Status', self.callback_pb_pump_update)
         self.id_status = Indicator(self.module, 'Pump Status', 'Running', 'Stopped', 'Light Grey')
 
-        self.status_dict = { '0' : 'Stopped',
-                             '1' : 'Running',
-                             '2' : 'Paused',
-                             '3' : 'Delayed',
-                             '4' : 'Stalled'
+        self.status_dict = {'0': 'Stopped',
+                            '1': 'Running',
+                            '2': 'Paused',
+                            '3': 'Delayed',
+                            '4': 'Stalled'
                             }
-
 
         x = 10
         self.cb_syringe_dia.place(10, x)
         x = x + 50
         self.cb_flow_unit.place(10, x)
         x = x + 50
-        self.ti_flow.place(10,x)
-        self.ti_volume.place(130,x)
+        self.ti_flow.place(10, x)
+        self.ti_volume.place(130, x)
         x = x + 50
-        self.pb_configure.place(10,x)
+        self.pb_configure.place(10, x)
         x = x + 30
-        self.pb_pump_start.place(10,x)
-        self.pb_pump_update.place(110,x)
+        self.pb_pump_start.place(10, x)
+        self.pb_pump_update.place(110, x)
         x = x + 30
-        self.pb_pump_stop.place(10,x)
+        self.pb_pump_stop.place(10, x)
         self.id_status.place(110, x)
         x = x + 30
-        self.pb_pump_pause.place(10,x)
+        self.pb_pump_pause.place(10, x)
 
         self.cb_flow_unit.set_index(1)
         self.ti_flow.set("100")
         self.ti_volume.set("5")
         self.cb_syringe_dia.set_index(5)
-		# self.status = []
 
+    # self.status = []
 
-    def update_connection(self, connection) :
+    def update_connection(self, connection):
         self.connection_flow_controller = connection
 
-
-    def update_flow_rate(self, flow) :
+    def update_flow_rate(self, flow):
         self.callback_pb_pump_stop()
         self.connection_flow_controller.updateChannel(self.pump)
         self.connection_flow_controller.setRate(flow)
         self.callback_pb_pump_start()
 
-
-    def update_flow_rate_volume(self, rate, volume) :
+    def update_flow_rate_volume(self, rate, volume):
         self.callback_pb_pump_stop()
         self.connection_flow_controller.updateChannel(self.pump)
         self.connection_flow_controller.setVolume(volume)
         self.connection_flow_controller.setRate(rate)
         self.callback_pb_pump_start()
 
-
-    def update_syringe_inner_dia(self, id) :
+    def update_syringe_inner_dia(self, id):
         self.connection_flow_controller.setDiameter(id)
 
-    def update_flow_rate_unit(self, unit) :
+    def update_flow_rate_unit(self, unit):
         self.connection_flow_controller.setUnits(unit)
 
-
-    def callback_pb_config_flow(self) :
+    def callback_pb_config_flow(self):
         self.callback_pb_pump_stop()
         self.connection_flow_controller.updateChannel(self.pump)
         self.connection_flow_controller.setUnits(self.cb_flow_unit.get_value())
@@ -705,18 +732,15 @@ class Flow_Controller() :
         self.connection_flow_controller.setRate(self.ti_flow.get())
         self.callback_pb_pump_start()
 
-
     def callback_pb_pump_start(self):
         self.connection_flow_controller.updateChannel(self.pump)
         self.connection_flow_controller.startPump()
-        self.callback_pb_pump_update()	# Add this
-
+        self.callback_pb_pump_update()  # Add this
 
     def callback_pb_pump_stop(self):
         self.connection_flow_controller.updateChannel(self.pump)
         self.connection_flow_controller.stopPump()
         self.callback_pb_pump_update()  # Add this
-
 
     def callback_pb_pump_pause(self):
         self.connection_flow_controller.updateChannel(self.pump)
