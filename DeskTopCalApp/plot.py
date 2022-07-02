@@ -6,7 +6,7 @@ from matplotlib.figure import Figure
 import collections
 
 
-class Data_Plot :
+class Data_Plot:
     def __init__(self, parent, x_container, y1_container, y2_container, title, x_label, y1_label, y2_label, is_static = True) :
         self.parent = parent
 

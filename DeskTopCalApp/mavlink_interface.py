@@ -387,7 +387,8 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
             self.discrete_data_logger_file_name = "../" + folder_name + "/" + str(
                 time.strftime("%d %b %Y %H_%M_%S", time.localtime()))
 
-        self.discrete_data_fields = ['Time [ms]', 'Corrected Value']
+        self.discrete_data_fields = ['Time [ms]', 'Measured Flow', 'Simple Moving Average Flow',
+                                     'Exponential Moving Average Flow']
 
         """OLD DATA FIELDS
         self.discrete_data_fields = ['Time [ms]', 'Timestamp', 'Raw Value', 'Corrected Value', 'Temperature Value',
@@ -454,7 +455,8 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), sma_flow,
                                  ema_flow, honeywell_flow)
 
-        data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow)]
+        data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow),
+                self.float_to_string(sma_flow), self.float_to_string(ema_flow)]
 
 
 
