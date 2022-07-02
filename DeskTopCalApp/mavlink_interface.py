@@ -4,6 +4,7 @@ import datetime
 import csv
 from plot import *
 import collections
+import moving_average
 
 
 class Time_Clock:
@@ -374,6 +375,7 @@ class Coeffs_Data_Handler(Interface_Data_Handler):
 class Monitor_Test_Data_Handler(Interface_Data_Handler):
     def __init__(self, app, folder_name, sampling_frequency, time_period_to_display_data, smoothing_settings=None):
         self.sampling_frequency = sampling_frequency
+        self.smoothing_settings = smoothing_settings
         self.max_buffer_len = int(time_period_to_display_data * self.sampling_frequency)
 
         self.clock = Time_Clock(self.sampling_frequency)
@@ -416,11 +418,6 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.sensirion_temp = 0
         self.sensirion_status = 0
 
-        self.sma = sma
-        self.ema = ema
-        self.lastEMA = None
-        self.lastSMA = None
-
         self.v_h = 0
         self.v_t = 0
         self.i_h = 0
@@ -437,13 +434,22 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
     def add_entry_sensor_data(self, lost_entries, raw_value, honeywell_flow, temperature_value):
 
         honeywell_flow = (honeywell_flow - 2 ** 23) / 2 ** 24 * 600 / .8
+        sma_flow = 0
+        ema_flow = 0
+
+        if(self.smoothing_settings['sma_active']):
+            sma_flow = moving_average.SMA(self.smoothing_settings)
+
+        if(self.smoothing_settings['ema_active']):
+            print('ema')
 
         self.clock.advance_number_of_ticks(lost_entries + 1)
         self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), int(raw_value),
                                  self.sensirion_flow / 20.0, honeywell_flow)
-        data = []
 
         data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow)]
+
+
 
         """ OLD DATA ROW
         data = [str(self.clock.get_elapsed_milli_sec()), self.clock.get_time_milli_sec(),
