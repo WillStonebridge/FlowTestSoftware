@@ -173,3 +173,5 @@ class Data_Plot3:
         self.sub_plot_3.plot(self.x_container, self.y3_container, color='green')
 
         self.canvas.draw()
+
+class Data_Plot_Smoothing

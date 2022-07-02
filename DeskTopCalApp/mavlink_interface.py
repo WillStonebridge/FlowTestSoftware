@@ -413,7 +413,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
                                 "Plot", "Elapsed time [seconds]", "Honeywell Sensor Raw Value [Red]",
                                 "Corrected Flow Value [ml/hr] [LD20 Blue, HW Green]", False)
         # self.graph.set_axes_limits(0, 100, -1*pow(2,23), pow(2,23), -1500, 1500)
-        self.graph.set_axes_limits(0, 100, 1500000, 3000000, -5, 20)  # THIS IS THE AXES
+        self.graph.set_axes_limits(0, 100, 0, 20, 0, 10)  # THIS IS THE AXES
 
         self.sensirion_flow = 0
         self.sensirion_temp = 0
