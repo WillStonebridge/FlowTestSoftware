@@ -633,6 +633,7 @@ class Data_Smoothing():
         self.smoothing_settings = {} #A dictionary of the smoothing settings given by the user
 
         self.module = Module(parent, title, 280, 310)
+        self.regular_waveform = Check_Button(self.module, 'Actual Waveform')
         self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform')
         self.ema_waveform = Check_Button(self.module, 'Exponential Moving Average Waveform')
         self.sma_k = Text_Input(self.module, "Average Window")
@@ -640,7 +641,9 @@ class Data_Smoothing():
         self.ema_s = Text_Input(self.module, "Smoothing Value")
         self.config_button = Push_Button(self.module, "Configure", self.configure_settings)
 
-        x = 30
+        x = 10
+        self.regular_waveform.place(10, x)
+        x += 20
         self.sma_waveform.place(10, x)
         x += 20
         self.sma_k.place(10, x)
@@ -660,6 +663,8 @@ class Data_Smoothing():
         self.configure_settings() #initializes the smoothing settings at startup
 
     def configure_settings(self): #updates the smoothing settings
+        self.smoothing_settings['reg_active'] = self.regular_waveform.get_value()
+
         self.smoothing_settings['sma_active'] = self.sma_waveform.get_value()
         self.smoothing_settings['sma_k'] = int(self.sma_k.get())
         self.smoothing_settings['prev_k_points'] = []

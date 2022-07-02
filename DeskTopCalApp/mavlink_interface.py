@@ -408,12 +408,12 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         #        self.graph = Data_Plot(app, self.time_points, self.honeywell_raw_value, self.LD20_corrected_value,
         #                               "Plot", "Elapsed time [seconds]", "Honeywell Sensor Raw Value [Red]",
         #                               "LD20 Corrected Flow Value [ml/hr] [Blue]", False)
-        self.graph = Data_Plot3(app, self.time_points, self.honeywell_raw_value, self.LD20_corrected_value,
+        self.graph = Data_Plot_Smoothing(app, self.time_points, self.honeywell_raw_value, self.LD20_corrected_value,
                                 self.honeywell_corrected_value,
-                                "Plot", "Elapsed time [seconds]", "Honeywell Sensor Raw Value [Red]",
-                                "Corrected Flow Value [ml/hr] [LD20 Blue, HW Green]", False)
+                                "Flow Waveform", "Elapsed time [seconds]",
+                                "Flow Rate (ml/hr)", False)
         # self.graph.set_axes_limits(0, 100, -1*pow(2,23), pow(2,23), -1500, 1500)
-        self.graph.set_axes_limits(0, 100, 0, 20, 0, 10)  # THIS IS THE AXES
+        self.graph.set_axes_limits(0, 100, 0, 10)  # THIS IS THE AXES
 
         self.sensirion_flow = 0
         self.sensirion_temp = 0
@@ -452,8 +452,8 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
             self.smoothing_settings['previous_ema'] = ema_flow
 
         self.clock.advance_number_of_ticks(lost_entries + 1)
-        self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), sma_flow,
-                                 ema_flow, honeywell_flow)
+        self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), honeywell_flow, sma_flow,
+                                 ema_flow)
 
         data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow),
                 self.float_to_string(sma_flow), self.float_to_string(ema_flow)]
@@ -491,7 +491,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.v_drop_t = v_drop_t
 
     def update_plot(self):
-        self.graph.update_plot()
+        self.graph.update_plot(self.smoothing_settings)
 
     def capture_timestamp_for_data_logging_about_to_start(self):
         self.clock.start_clock()
