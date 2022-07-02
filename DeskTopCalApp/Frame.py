@@ -250,7 +250,9 @@ class Input_Panel:
         elif self.sampling_freq < 0:
             self.sampling_freq = 0
 
-        self.data_handler = Monitor_Test_Data_Handler(self.parent, self.log_file, self.sampling_freq, 5)
+
+        self.data_handler = Monitor_Test_Data_Handler(self.parent, self.log_file, self.sampling_freq, 5,
+                                                      self.data_smoothing.smoothing_settings)
 
         self.mavlink_handler = MAVLink_Handler(self.sensor_serial_handler, 1, 2, self.data_handler)
 
@@ -628,27 +630,46 @@ class Logo_Title:
 
 class Data_Smoothing():
     def __init__(self, parent, title):
+        self.smoothing_settings = {} #A dictionary of the smoothing settings given by the user
+
         self.module = Module(parent, title, 280, 310)
         self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform')
         self.ema_waveform = Check_Button(self.module, 'Exponential Moving Average Waveform')
         self.sma_k = Text_Input(self.module, "Average Window")
         self.ema_k = Text_Input(self.module, "Average Window")
         self.ema_s = Text_Input(self.module, "Smoothing Value")
+        self.config_button = Push_Button(self.module, "Configure", self.configure_settings)
 
         x = 30
         self.sma_waveform.place(10, x)
         x += 20
         self.sma_k.place(10, x)
-        x += 100
+        x += 70
         self.ema_waveform.place(10, x)
         x += 20
         self.ema_k.place(10, x)
         x += 40
         self.ema_s.place(10, x)
+        x += 60
+        self.config_button.place(10, x)
 
         self.sma_k.set("50")
         self.ema_k.set("50")
         self.ema_s.set("1")
+
+        self.configure_settings() #initializes the smoothing settings at startup
+
+    def configure_settings(self): #updates the smoothing settings
+        self.smoothing_settings['sma_active'] = self.sma_waveform.get_value()
+        self.smoothing_settings['sma_k'] = int(self.sma_k.get())
+        self.smoothing_settings['prev_k_points'] = []
+
+        self.smoothing_settings['ema_active'] = self.ema_waveform.get_value()
+        self.smoothing_settings['ema_k'] = int(self.ema_k.get())
+        self.smoothing_settings['ema_s'] = float(self.ema_s.get())
+        self.smoothing_settings['previous_ema'] = None
+
+
 
 
 class Flow_Controller():

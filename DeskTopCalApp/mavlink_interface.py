@@ -372,7 +372,7 @@ class Coeffs_Data_Handler(Interface_Data_Handler):
 
 
 class Monitor_Test_Data_Handler(Interface_Data_Handler):
-    def __init__(self, app, folder_name, sampling_frequency, time_period_to_display_data):
+    def __init__(self, app, folder_name, sampling_frequency, time_period_to_display_data, smoothing_settings=None):
         self.sampling_frequency = sampling_frequency
         self.max_buffer_len = int(time_period_to_display_data * self.sampling_frequency)
 
@@ -416,6 +416,8 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.sensirion_temp = 0
         self.sensirion_status = 0
 
+        self.sma = sma
+        self.ema = ema
         self.lastEMA = None
         self.lastSMA = None
 
@@ -432,7 +434,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         return ("%.4f" % value)
 
     # Controls logging and graphing at the receipt of new data
-    def add_entry_sensor_data(self, lost_entries, raw_value, honeywell_flow, temperature_value, sma=False, ema=False):
+    def add_entry_sensor_data(self, lost_entries, raw_value, honeywell_flow, temperature_value):
 
         honeywell_flow = (honeywell_flow - 2 ** 23) / 2 ** 24 * 600 / .8
 
