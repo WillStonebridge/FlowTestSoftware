@@ -412,7 +412,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
                                 "Plot", "Elapsed time [seconds]", "Honeywell Sensor Raw Value [Red]",
                                 "Corrected Flow Value [ml/hr] [LD20 Blue, HW Green]", False)
         # self.graph.set_axes_limits(0, 100, -1*pow(2,23), pow(2,23), -1500, 1500)
-        self.graph.set_axes_limits(0, 100, 1500000, 3000000, -5, 5)  # THIS IS THE AXES
+        self.graph.set_axes_limits(0, 100, 1500000, 3000000, -5, 20)  # THIS IS THE AXES
 
         self.sensirion_flow = 0
         self.sensirion_temp = 0
@@ -438,14 +438,21 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         ema_flow = 0
 
         if(self.smoothing_settings['sma_active']):
-            sma_flow = moving_average.SMA(self.smoothing_settings)
+            self.smoothing_settings['prev_k_points'].append(honeywell_flow)
+
+            if self.smoothing_settings['sma_k'] > len(self.smoothing_settings['prev_k_points']):
+                sma_flow = moving_average.SMA(self.smoothing_settings)
+            else:
+                sma_flow = moving_average.SMA(self.smoothing_settings)
+                self.smoothing_settings['prev_k_points'].pop(0)
 
         if(self.smoothing_settings['ema_active']):
-            print('ema')
+            ema_flow = moving_average.EMA(honeywell_flow, self.smoothing_settings)
+            self.smoothing_settings['previous_ema'] = ema_flow
 
         self.clock.advance_number_of_ticks(lost_entries + 1)
-        self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), int(raw_value),
-                                 self.sensirion_flow / 20.0, honeywell_flow)
+        self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), sma_flow,
+                                 ema_flow, honeywell_flow)
 
         data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow)]
 
