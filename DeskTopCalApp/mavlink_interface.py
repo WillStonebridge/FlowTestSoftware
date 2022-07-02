@@ -385,10 +385,15 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
             self.discrete_data_logger_file_name = "../" + folder_name + "/" + str(
                 time.strftime("%d %b %Y %H_%M_%S", time.localtime()))
 
+        self.discrete_data_fields = ['Time [ms]', 'Corrected Value']
+
+        """OLD DATA FIELDS
         self.discrete_data_fields = ['Time [ms]', 'Timestamp', 'Raw Value', 'Corrected Value', 'Temperature Value',
                                      'LD20 Flow', 'LD20 Temperature', 'LD20 Status',
                                      'Heater Voltage', 'Thermistor Voltage', 'Heater Current', 'Thermistor Current',
                                      'Series R Voltage']
+        """
+
         self.discrete_data_logger = CSV_Data_Logger(self.discrete_data_logger_file_name, 100000,
                                                     self.discrete_data_fields)
 
@@ -411,6 +416,9 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.sensirion_temp = 0
         self.sensirion_status = 0
 
+        self.lastEMA = None
+        self.lastSMA = None
+
         self.v_h = 0
         self.v_t = 0
         self.i_h = 0
@@ -423,14 +431,19 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
     def float_to_string(self, value):
         return ("%.4f" % value)
 
-    def add_entry_sensor_data(self, lost_entries, raw_value, corrected_value, temperature_value):
+    # Controls logging and graphing at the receipt of new data
+    def add_entry_sensor_data(self, lost_entries, raw_value, honeywell_flow, temperature_value, sma=False, ema=False):
 
-        corrected_value = (corrected_value - 2 ** 23) / 2 ** 24 * 600 / .8
+        honeywell_flow = (honeywell_flow - 2 ** 23) / 2 ** 24 * 600 / .8
+
         self.clock.advance_number_of_ticks(lost_entries + 1)
         self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), int(raw_value),
-                                 self.sensirion_flow / 20.0, corrected_value)
+                                 self.sensirion_flow / 20.0, honeywell_flow)
         data = []
 
+        data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow)]
+
+        """ OLD DATA ROW
         data = [str(self.clock.get_elapsed_milli_sec()), self.clock.get_time_milli_sec(),
                 self.float_to_string(raw_value), self.float_to_string(corrected_value),
                 self.float_to_string(temperature_value),
@@ -438,6 +451,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
                 self.float_to_string(self.sensirion_status),
                 self.float_to_string(self.v_h), self.float_to_string(self.v_t), self.float_to_string(self.i_h),
                 self.float_to_string(self.i_t), self.float_to_string(self.v_drop_t)]
+        """
 
         # data = [str(self.clock.get_elapsed_milli_sec()), str(self.clock.get_time_milli_sec()),
         #                                      str(raw_value), str(corrected_value), str(temperature_value), 
