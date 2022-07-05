@@ -215,13 +215,15 @@ class Data_Plot_Smoothing(Data_Plot3):
         self.sub_plot_1.set_xlabel(self.x_label, fontsize=14)
         self.figure.tight_layout()
 
-    def resize_plot_axes_limits(self):
+    def resize_plot_axes_limits(self, settings):
+
         self.sub_plot_1.set_ylim(self.y_min, self.y_max)
         self.sub_plot_2.set_ylim(self.y_min, self.y_max)
         self.sub_plot_3.set_ylim(self.y_min, self.y_max)
 
         if self.is_static == True:
             self.sub_plot_1.set_xlim(self.x_min, self.x_max)
+
 
     def set_axes_limits(self, x_min, x_max, y_min, y_max):
         self.x_min = x_min
@@ -234,7 +236,7 @@ class Data_Plot_Smoothing(Data_Plot3):
         self.sub_plot_2.clear()
         self.sub_plot_3.clear()
 
-        self.resize_plot_axes_limits()
+        self.resize_plot_axes_limits(settings)
         self.decorate_plot()
 
         if(settings['reg_active']):
@@ -243,5 +245,8 @@ class Data_Plot_Smoothing(Data_Plot3):
             self.sub_plot_2.plot(self.x_container, self.y2_container, color='blue')
         if(settings['ema_active']):
             self.sub_plot_3.plot(self.x_container, self.y3_container, color='green')
+
+        if len(self.x_container) > 0:
+            self.sub_plot_1.set_xlim(self.x_container[0], self.x_container[-1])
 
         self.canvas.draw()
