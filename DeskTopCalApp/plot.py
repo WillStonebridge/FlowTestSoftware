@@ -188,9 +188,6 @@ class Data_Plot_Smoothing(Data_Plot3):
         self.canvas.get_tk_widget().grid(row=0, column=1, sticky=tk.NW, padx=(10, 10), pady=(0, 0))
         self.canvas.draw()
 
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self.parent, pack_toolbar=False)
-        self.toolbar.update()
-        self.toolbar.grid(row=1, column=1, sticky=tk.N, padx=(0, 0), pady=(0, 0))
         self.figure.tight_layout()
 
         self.x_container = x_container

@@ -607,12 +607,15 @@ class Input_Panel:
             title="Choose a log location",
             filetypes=filetypes)
 
+        if len(self.log_file) < 1:
+            self.log_file = 'Data files'
+
 
     def setup_test_panel(self):
         self.test_panel.grid(row=1, column=1, sticky=tk.S, padx=(15, 15), rowspan=1)
 
         self.save_fig_pb = tk.Button(self.test_panel, text="Save Plot", command=self.save_plot)
-        self.average_monitor = tk.Label(self.test_panel, text="functional")
+        self.average_monitor = tk.Label(self.test_panel, text="functional", font=("Helvetica", 14), background='white', justify='left')
 
         self.save_fig_pb.place(x=350, y=50)
         self.average_monitor.place(x=10, y=10)

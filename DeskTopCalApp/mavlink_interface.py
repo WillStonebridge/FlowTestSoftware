@@ -428,7 +428,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.reg_pts = []
         self.ema_pts = []
         self.sma_pts = []
-        self.test_packet = {"time" : '0 : 0',
+        self.test_packet = {"time" : '0:00',
                             "reg_avg" : '0', "sma_avg" : '0', "ema_avg" : '0'}
 
     def close_files(self):
