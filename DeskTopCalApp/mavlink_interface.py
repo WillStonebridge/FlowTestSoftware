@@ -429,7 +429,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.ema_pts = []
         self.sma_pts = []
         self.test_packet = {"time" : '0 : 0',
-                            "reg_avg" : 0, "sma_avg" : 0, "ema_avg" : 0}
+                            "reg_avg" : '0', "sma_avg" : '0', "ema_avg" : '0'}
 
     def close_files(self):
         self.discrete_data_logger.close_csv()
@@ -441,21 +441,19 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
     def add_entry_sensor_data(self, lost_entries, raw_value, honeywell_flow, temperature_value):
 
         honeywell_flow = (honeywell_flow - 2 ** 23) / 2 ** 24 * 600 / .8
+
         sma_flow = 0
-        ema_flow = 0
+        self.smoothing_settings['prev_k_points'].append(honeywell_flow)
 
-        if(self.smoothing_settings['sma_active']):
-            self.smoothing_settings['prev_k_points'].append(honeywell_flow)
+        if self.smoothing_settings['sma_k'] > len(self.smoothing_settings['prev_k_points']):
+            sma_flow = moving_average.SMA(self.smoothing_settings)
+        else:
+            sma_flow = moving_average.SMA(self.smoothing_settings)
+            self.smoothing_settings['prev_k_points'].pop(0)
 
-            if self.smoothing_settings['sma_k'] > len(self.smoothing_settings['prev_k_points']):
-                sma_flow = moving_average.SMA(self.smoothing_settings)
-            else:
-                sma_flow = moving_average.SMA(self.smoothing_settings)
-                self.smoothing_settings['prev_k_points'].pop(0)
 
-        if(self.smoothing_settings['ema_active']):
-            ema_flow = moving_average.EMA(honeywell_flow, self.smoothing_settings)
-            self.smoothing_settings['previous_ema'] = ema_flow
+        ema_flow = moving_average.EMA(honeywell_flow, self.smoothing_settings)
+        self.smoothing_settings['previous_ema'] = ema_flow
 
         self.clock.advance_number_of_ticks(lost_entries + 1)
         self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), honeywell_flow, sma_flow,
@@ -470,22 +468,19 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
 
         if self.clock.get_elapsed_milli_sec() % 2000 == 0:
             seconds = self.clock.total_elapsed_ms / 1000
-            time_min = int(seconds / 60)
+            time_min = str(int(seconds / 60))
             time_sec = int(seconds % 60)
+            if time_sec < 10:
+                time_sec = "0" + str(time_sec)
+            else:
+                time_sec = str(time_sec)
             time = time_min + ":" + time_sec
 
-            print("\n-----------------")
-            print("TIME: ", time)
-            print("Regular Average: ", sum(self.reg_pts) / len(self.reg_pts))
-            print("SMA Average: ", sum(self.sma_pts) / len(self.sma_pts))
-            print("EMA Average: ", sum(self.ema_pts) / len(self.ema_pts))
-            print("-------------------\n")
+            temp_packet = {"time": time, "reg_avg": str(sum(self.sma_pts) / len(self.sma_pts)),
+                           "sma_avg": str(sum(self.sma_pts) / len(self.sma_pts)),
+                           "ema_avg": str(sum(self.ema_pts) / len(self.ema_pts))}
 
-            self.test_packet["time"] = time
-            self.test_packet["reg_avg"] = sum(self.sma_pts) / len(self.sma_pts)
-            self.test_packet["sma_avg"] = sum(self.sma_pts) / len(self.sma_pts)
-            self.test_packet["ema_avg"] = sum(self.ema_pts) / len(self.ema_pts)
-
+            self.test_packet = temp_packet
 
         """ OLD DATA ROW
         data = [str(self.clock.get_elapsed_milli_sec()), self.clock.get_time_milli_sec(),
@@ -522,6 +517,8 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
 
     def capture_timestamp_for_data_logging_about_to_start(self):
         self.clock.start_clock()
+
+
 
 
 class Serial_Handler:

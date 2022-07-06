@@ -77,6 +77,7 @@ class Main_Application(tk.Frame):
 
 class Input_Panel:
     def __init__(self, parent, t_app):
+
         self.fonts = User_Fonts()
         self.parent = parent
         self.app = t_app
@@ -89,7 +90,7 @@ class Input_Panel:
         self.starting_first_time = True
         self.timer_ticks = 0
         self.calibration_filename = None
-        self.data_handler = None
+        self.average_monitor = None
 
         self.log_file = 'Data files'
 
@@ -132,7 +133,7 @@ class Input_Panel:
         self.flow_panel = Module(self.parent, 'Flow Control Panel', 300, 690, 'red')
 
         self.input_panel.grid(row=0, column=0, sticky=tk.NW, padx=(15, 15), rowspan=2)
-        #self.test_panel.grid(row=1, column=1, sticky=tk.S, padx=(15,15), rowspan=1)
+        # self.test_panel.grid(row=1, column=1, sticky=tk.S, padx=(15,15), rowspan=1)
         self.flow_panel.grid(row=0, column=2, sticky=tk.NE, padx=(15, 15), rowspan=2)
 
         self.sensor_detail = Module(self.input_panel, 'Liquid Flow Sensor', 280, 170)
@@ -145,7 +146,6 @@ class Input_Panel:
         self.pb_detect.place(10, 65)
         self.pb_log_dir.place(x=100, y=65)
         self.ic_sensor_status.place(10, 95)
-
 
         self.test_control = Module(self.input_panel, 'Monitor Test Control', 280, 275)
         self.cb_sensor_data_type = Combo_Box(self.test_control, 'Sensor Data Type',
@@ -245,7 +245,6 @@ class Input_Panel:
         elif self.sampling_freq < 0:
             self.sampling_freq = 0
 
-
         self.data_handler = Monitor_Test_Data_Handler(self.parent, self.log_file, self.sampling_freq, 5,
                                                       self.data_smoothing.smoothing_settings)
 
@@ -261,9 +260,9 @@ class Input_Panel:
 
         self.data_handler.capture_timestamp_for_data_logging_about_to_start()
 
-        self.timer_interrupt_handler()
-
         self.setup_test_panel()
+
+        self.timer_interrupt_handler()
 
     def callback_on_exit_run_monitor_test(self):
         self.mavlink_handler.mavlink.configure_data_stream_send(self.mav_stream_type_dictionary['Both Data'], 0)
@@ -365,7 +364,7 @@ class Input_Panel:
         if self.state == 'run_monitor_test':
             self.mavlink_handler.parse_received_data()
             self.data_handler.update_plot()
-            #update avg here self.update_avg(self.mavlink_handler.test_packet)
+            self.update_average_monitor()
             self.app.after(100, self.timer_interrupt_handler)
 
         elif self.state == 'run_char_test':
@@ -608,15 +607,33 @@ class Input_Panel:
             title="Choose a log location",
             filetypes=filetypes)
 
+
     def setup_test_panel(self):
         self.test_panel.grid(row=1, column=1, sticky=tk.S, padx=(15, 15), rowspan=1)
 
         self.save_fig_pb = tk.Button(self.test_panel, text="Save Plot", command=self.save_plot)
+        self.average_monitor = tk.Label(self.test_panel, text="functional")
 
-        self.save_fig_pb.place(x=10, y=10)
+        self.save_fig_pb.place(x=350, y=50)
+        self.average_monitor.place(x=10, y=10)
 
+        self.update_average_monitor()
+
+    def update_average_monitor(self):
+        # Acquires various overall test statistics from the data handler
+        packet = self.data_handler.test_packet
+
+        # formats the data received from the packet
+        text = "TIME: " + packet["time"] + "\n" + "Actual Average: " + packet[
+            "reg_avg"] + " ml/hr\n" + "SMA Average: " + packet["sma_avg"] + " ml/hr\n" + "EMA Average: " + packet[
+                   "ema_avg"] + " ml/hr"
+
+        # updates the monitor
+        self.average_monitor["text"] = text
 
     def save_plot(self):
+
+        # Acquires the file location from the user
         filetypes = (
             ('png files', '*.png'),
             ('All files', '*.*'))
@@ -626,7 +643,9 @@ class Input_Panel:
             title="Choose a photo location",
             filetypes=filetypes)
 
-        self.data_handler.graph.figure.savefig(file_location)
+        # saves the photo if the file prompt was not cancelled
+        if len(file_location) > 0:
+            self.data_handler.graph.figure.savefig(file_location)
 
 
 class Logo_Title:
@@ -646,7 +665,7 @@ class Logo_Title:
 
 class Data_Smoothing():
     def __init__(self, parent, title):
-        self.smoothing_settings = {} #A dictionary of the smoothing settings given by the user
+        self.smoothing_settings = {}  # A dictionary of the smoothing settings given by the user
 
         self.module = Module(parent, title, 280, 310)
         self.regular_waveform = Check_Button(self.module, 'Actual Waveform', val=1)
@@ -676,9 +695,9 @@ class Data_Smoothing():
         self.ema_k.set("10")
         self.ema_s.set("2")
 
-        self.configure_settings() #initializes the smoothing settings at startup
+        self.configure_settings()  # initializes the smoothing settings at startup
 
-    def configure_settings(self): #updates the smoothing settings
+    def configure_settings(self):  # updates the smoothing settings
         self.smoothing_settings['reg_active'] = self.regular_waveform.get_value()
 
         self.smoothing_settings['sma_active'] = self.sma_waveform.get_value()
@@ -689,8 +708,6 @@ class Data_Smoothing():
         self.smoothing_settings['ema_k'] = int(self.ema_k.get())
         self.smoothing_settings['ema_s'] = float(self.ema_s.get())
         self.smoothing_settings['previous_ema'] = None
-
-
 
 
 class Flow_Controller():
