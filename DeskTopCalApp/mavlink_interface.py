@@ -425,6 +425,12 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.i_t = 0
         self.v_drop_t = 0
 
+        self.reg_pts = []
+        self.ema_pts = []
+        self.sma_pts = []
+        self.test_packet = {"time" : '0 : 0',
+                            "reg_avg" : 0, "sma_avg" : 0, "ema_avg" : 0}
+
     def close_files(self):
         self.discrete_data_logger.close_csv()
 
@@ -458,6 +464,27 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow),
                 self.float_to_string(sma_flow), self.float_to_string(ema_flow)]
 
+        self.reg_pts.append(honeywell_flow)
+        self.sma_pts.append(sma_flow)
+        self.ema_pts.append(ema_flow)
+
+        if self.clock.get_elapsed_milli_sec() % 2000 == 0:
+            seconds = self.clock.total_elapsed_ms / 1000
+            time_min = int(seconds / 60)
+            time_sec = int(seconds % 60)
+            time = time_min + ":" + time_sec
+
+            print("\n-----------------")
+            print("TIME: ", time)
+            print("Regular Average: ", sum(self.reg_pts) / len(self.reg_pts))
+            print("SMA Average: ", sum(self.sma_pts) / len(self.sma_pts))
+            print("EMA Average: ", sum(self.ema_pts) / len(self.ema_pts))
+            print("-------------------\n")
+
+            self.test_packet["time"] = time
+            self.test_packet["reg_avg"] = sum(self.sma_pts) / len(self.sma_pts)
+            self.test_packet["sma_avg"] = sum(self.sma_pts) / len(self.sma_pts)
+            self.test_packet["ema_avg"] = sum(self.ema_pts) / len(self.ema_pts)
 
 
         """ OLD DATA ROW

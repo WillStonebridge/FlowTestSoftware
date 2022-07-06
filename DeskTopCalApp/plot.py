@@ -179,7 +179,7 @@ class Data_Plot_Smoothing(Data_Plot3):
                  is_static=True):
         self.parent = parent
 
-        self.figure = Figure(figsize=(9, 6), dpi=100)
+        self.figure = Figure(figsize=(8, 5), dpi=100)
         self.sub_plot_1 = self.figure.add_subplot(111)
         self.sub_plot_2 = self.sub_plot_1.twinx()
         self.sub_plot_3 = self.sub_plot_1.twinx()

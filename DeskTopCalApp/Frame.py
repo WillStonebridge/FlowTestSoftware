@@ -6,29 +6,22 @@ To Change flow controllers comment one of the following:
 from flow_controllerPhd import *
 from flow_controllerPolo import 
 """
-from logging import NullHandler
-import tkinter as tk
-from tkinter import ttk, filedialog
-from tkinter.constants import BOTTOM, RIGHT
+import subprocess
+import time
 from tkinter import filedialog as fd
+from tkinter.constants import BOTTOM, RIGHT
 
+import openpyxl
 from PIL import ImageTk, Image
+from transitions import Machine, State
+
 from Widget import *
+from convert_csv_excel import create_matlab_input_file
 # from flow_controllerPhd import *
 from flow_controllerPolo import *
 from mavlink_interface import *
 from plot import *
 from test_config import *
-import random
-import serial
-import serial.tools.list_ports
-import sys
-import glob
-import time
-from transitions import Machine, State, Transition
-import subprocess
-from convert_csv_excel import create_matlab_input_file
-import openpyxl
 
 
 class Main_Application(tk.Frame):
@@ -96,6 +89,7 @@ class Input_Panel:
         self.starting_first_time = True
         self.timer_ticks = 0
         self.calibration_filename = None
+        self.data_handler = None
 
         self.log_file = 'Data files'
 
@@ -134,19 +128,24 @@ class Input_Panel:
 
     def create(self):
         self.input_panel = Module(self.parent, 'Input Panel', 500, 690, 'red')
+        self.test_panel = Module(self.parent, 'Test Control', 750, 150, 'red')
         self.flow_panel = Module(self.parent, 'Flow Control Panel', 300, 690, 'red')
 
         self.input_panel.grid(row=0, column=0, sticky=tk.NW, padx=(15, 15), rowspan=2)
+        #self.test_panel.grid(row=1, column=1, sticky=tk.S, padx=(15,15), rowspan=1)
         self.flow_panel.grid(row=0, column=2, sticky=tk.NE, padx=(15, 15), rowspan=2)
 
         self.sensor_detail = Module(self.input_panel, 'Liquid Flow Sensor', 280, 170)
         self.cb_sensor_com = Combo_Box(self.sensor_detail, 'COM Port', self.portinfo)
+        self.pb_log_dir = tk.Button(self.sensor_detail, text="Log File Location", command=self.select_log_file)
         self.pb_detect = Push_Button(self.sensor_detail, 'Connect', self.callback_control_detect)
         self.ic_sensor_status = Indicator(self.sensor_detail, 'Connection Status', 'Connected', 'Not Connected')
 
         self.cb_sensor_com.place(10, 10)
         self.pb_detect.place(10, 65)
+        self.pb_log_dir.place(x=100, y=65)
         self.ic_sensor_status.place(10, 95)
+
 
         self.test_control = Module(self.input_panel, 'Monitor Test Control', 280, 275)
         self.cb_sensor_data_type = Combo_Box(self.test_control, 'Sensor Data Type',
@@ -157,8 +156,6 @@ class Input_Panel:
         self.pb_start_test = Push_Button(self.test_control, 'Start Test', self.callback_control_start_test)
         self.pb_stop_test = Push_Button(self.test_control, 'Stop Test', self.callback_control_stop_test)
         self.ic_test_status = Indicator(self.test_control, 'Test Status', 'Running', 'Stopped')
-        self.pb_log_dir = tk.Button(self.test_control, text="Log File Location", command=self.select_log_file)
-        self.log_file_display = tk.Label(self.test_control, text=self.log_file, wraplength=150, background="#ffffff")
 
         x = 10
         self.cb_sensor_data_type.place(10, x)
@@ -169,10 +166,8 @@ class Input_Panel:
         self.chb_heater_control_data_enable.place(100, x)
         x = x + 30
         self.pb_start_test.place(10, x)
-        self.pb_log_dir.place(x=100, y=x)
         x = x + 30
         self.pb_stop_test.place(10, x)
-        self.log_file_display.place(x=100, y=x)
         x = x + 30
         self.ic_test_status.place(10, x)
 
@@ -267,6 +262,8 @@ class Input_Panel:
         self.data_handler.capture_timestamp_for_data_logging_about_to_start()
 
         self.timer_interrupt_handler()
+
+        self.setup_test_panel()
 
     def callback_on_exit_run_monitor_test(self):
         self.mavlink_handler.mavlink.configure_data_stream_send(self.mav_stream_type_dictionary['Both Data'], 0)
@@ -368,6 +365,7 @@ class Input_Panel:
         if self.state == 'run_monitor_test':
             self.mavlink_handler.parse_received_data()
             self.data_handler.update_plot()
+            #update avg here self.update_avg(self.mavlink_handler.test_packet)
             self.app.after(100, self.timer_interrupt_handler)
 
         elif self.state == 'run_char_test':
@@ -610,7 +608,25 @@ class Input_Panel:
             title="Choose a log location",
             filetypes=filetypes)
 
-        self.log_file_display["text"] = self.log_file
+    def setup_test_panel(self):
+        self.test_panel.grid(row=1, column=1, sticky=tk.S, padx=(15, 15), rowspan=1)
+
+        self.save_fig_pb = tk.Button(self.test_panel, text="Save Plot", command=self.save_plot)
+
+        self.save_fig_pb.place(x=10, y=10)
+
+
+    def save_plot(self):
+        filetypes = (
+            ('png files', '*.png'),
+            ('All files', '*.*'))
+
+        file_location = fd.asksaveasfilename(
+            initialdir="/",
+            title="Choose a photo location",
+            filetypes=filetypes)
+
+        self.data_handler.graph.figure.savefig(file_location)
 
 
 class Logo_Title:
@@ -633,9 +649,9 @@ class Data_Smoothing():
         self.smoothing_settings = {} #A dictionary of the smoothing settings given by the user
 
         self.module = Module(parent, title, 280, 310)
-        self.regular_waveform = Check_Button(self.module, 'Actual Waveform')
-        self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform')
-        self.ema_waveform = Check_Button(self.module, 'Exponential Moving Average Waveform')
+        self.regular_waveform = Check_Button(self.module, 'Actual Waveform', val=1)
+        self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform', val=1)
+        self.ema_waveform = Check_Button(self.module, 'Exponential Moving Average Waveform', val=1)
         self.sma_k = Text_Input(self.module, "Average Window")
         self.ema_k = Text_Input(self.module, "Average Window")
         self.ema_s = Text_Input(self.module, "Smoothing Value")
@@ -656,9 +672,9 @@ class Data_Smoothing():
         x += 60
         self.config_button.place(10, x)
 
-        self.sma_k.set("50")
-        self.ema_k.set("50")
-        self.ema_s.set("1")
+        self.sma_k.set("10")
+        self.ema_k.set("10")
+        self.ema_s.set("2")
 
         self.configure_settings() #initializes the smoothing settings at startup
 

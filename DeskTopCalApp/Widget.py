@@ -130,10 +130,11 @@ class Text_Input :
 
 
 class Check_Button :
-    def __init__(self, module, title, ) :
+    def __init__(self, module, title, val = 0) :
         self.module = module
-        self.value = tk.IntVar()
+        self.value = tk.IntVar(value=val)
         self.check_button = tk.Checkbutton(self.module, text=title, variable=self.value, fg = 'black', bg = 'white')
+
 
     
     def get_value(self) :
