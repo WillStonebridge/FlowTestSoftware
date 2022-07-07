@@ -36,11 +36,9 @@ EXPONENTIAL MOVING AVERAGE
 
 
 def EMA(data, settings):
-    window = settings['ema_k']
-    smoothing = settings['ema_s']
     EMA_prev = settings['previous_ema']
 
-    alpha = smoothing / (1 + window)
+    alpha = settings['ema_alpha']
 
     if (EMA_prev):
         return data * alpha + EMA_prev * (1 - alpha)
@@ -50,8 +48,8 @@ def EMA(data, settings):
 
 if __name__ == '__main__':
 
-    settings = {'sma_active': True, 'sma_k': 10, 'prev_k_points': [], 'ema_active': True, 'ema_k': 10,
-                'ema_s': 1, 'previous_ema': None}
+    settings = {'sma_active': True, 'sma_k': 10, 'prev_k_points': [], 'ema_active': True, 'ema_alpha': 0.1,
+                'previous_ema': None}
 
     # Random data is generated
     rand_data = [random.randrange(30, 50, 2) for i in range(100)]

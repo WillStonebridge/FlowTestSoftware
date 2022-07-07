@@ -8,6 +8,7 @@ from flow_controllerPolo import
 """
 import subprocess
 import time
+import tkinter.messagebox
 from tkinter import filedialog as fd
 from tkinter.constants import BOTTOM, RIGHT
 
@@ -675,8 +676,7 @@ class Data_Smoothing():
         self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform', val=1)
         self.ema_waveform = Check_Button(self.module, 'Exponential Moving Average Waveform', val=1)
         self.sma_k = Text_Input(self.module, "Average Window")
-        self.ema_k = Text_Input(self.module, "Average Window")
-        self.ema_s = Text_Input(self.module, "Smoothing Value")
+        self.ema_alpha = Text_Input(self.module, "Alpha")
         self.config_button = Push_Button(self.module, "Configure", self.configure_settings)
 
         x = 10
@@ -688,29 +688,44 @@ class Data_Smoothing():
         x += 70
         self.ema_waveform.place(10, x)
         x += 20
-        self.ema_k.place(10, x)
-        x += 40
-        self.ema_s.place(10, x)
+        self.ema_alpha.place(10, x)
         x += 60
         self.config_button.place(10, x)
 
         self.sma_k.set("10")
-        self.ema_k.set("10")
-        self.ema_s.set("2")
+        self.ema_alpha.set("0.5")
+
+        self.smoothing_settings['sma_k'] = int(self.sma_k.get())
+        self.smoothing_settings['prev_k_points'] = []
+
+        self.smoothing_settings['ema_alpha'] = float(self.ema_alpha.get())
+        self.smoothing_settings['previous_ema'] = None
 
         self.configure_settings()  # initializes the smoothing settings at startup
 
     def configure_settings(self):  # updates the smoothing settings
+        #Determines whether or not to display the regular, ema, and sma waveforms
         self.smoothing_settings['reg_active'] = self.regular_waveform.get_value()
-
         self.smoothing_settings['sma_active'] = self.sma_waveform.get_value()
-        self.smoothing_settings['sma_k'] = int(self.sma_k.get())
-        self.smoothing_settings['prev_k_points'] = []
-
         self.smoothing_settings['ema_active'] = self.ema_waveform.get_value()
-        self.smoothing_settings['ema_k'] = int(self.ema_k.get())
-        self.smoothing_settings['ema_s'] = float(self.ema_s.get())
-        self.smoothing_settings['previous_ema'] = None
+
+        #The below settings will only be changed if the value inside their box is different
+
+        if self.smoothing_settings['sma_k'] != int(self.sma_k.get()):
+            #if the new k is smaller than the old k, the list of the previous k points is trimmed to the length of new k.
+            new_k = int(self.sma_k.get())
+            if self.smoothing_settings['sma_k'] > new_k:
+                self.smoothing_settings['prev_k_points'] = self.smoothing_settings['prev_k_points'][-new_k:-1]
+
+            self.smoothing_settings['sma_k'] = new_k
+
+        if self.smoothing_settings['ema_alpha'] != float(self.ema_alpha.get()):
+            alpha = float(self.ema_alpha.get())
+            if alpha <= 0 or alpha >= 1:
+                tkinter.messagebox.showerror("Invalid Alpha", "Alpha must be a value between 0 and 1")
+            else:
+                self.smoothing_settings['ema_alpha'] = float(self.ema_alpha.get())
+                self.smoothing_settings['previous_ema'] = None
 
 
 class Flow_Controller():

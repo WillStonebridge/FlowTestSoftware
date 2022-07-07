@@ -476,9 +476,9 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
                 time_sec = str(time_sec)
             time = time_min + ":" + time_sec
 
-            temp_packet = {"time": time, "reg_avg": str(sum(self.sma_pts) / len(self.sma_pts)),
-                           "sma_avg": str(sum(self.sma_pts) / len(self.sma_pts)),
-                           "ema_avg": str(sum(self.ema_pts) / len(self.ema_pts))}
+            temp_packet = {"time": time, "reg_avg": str(sum(self.sma_pts) / len(self.sma_pts))[0:6],
+                           "sma_avg": str(sum(self.sma_pts) / len(self.sma_pts))[0:6],
+                           "ema_avg": str(sum(self.ema_pts) / len(self.ema_pts))[0:6]}
 
             self.test_packet = temp_packet
 
