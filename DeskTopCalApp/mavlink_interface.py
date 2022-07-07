@@ -388,7 +388,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
                 time.strftime("%d %b %Y %H_%M_%S", time.localtime()))
 
         self.discrete_data_fields = ['Time [ms]', 'Measured Flow', 'Simple Moving Average Flow',
-                                     'Exponential Moving Average Flow']
+                                     'Exponential Moving Average Flow', 'LD20 Flow']
 
         """OLD DATA FIELDS
         self.discrete_data_fields = ['Time [ms]', 'Timestamp', 'Raw Value', 'Corrected Value', 'Temperature Value',
@@ -409,7 +409,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         #                               "Plot", "Elapsed time [seconds]", "Honeywell Sensor Raw Value [Red]",
         #                               "LD20 Corrected Flow Value [ml/hr] [Blue]", False)
         self.graph = Data_Plot_Smoothing(app, self.time_points, self.honeywell_raw_value, self.LD20_corrected_value,
-                                self.honeywell_corrected_value,
+                                self.honeywell_corrected_value, self.LD20_corrected_value,
                                 "Flow Waveform", "Elapsed time [seconds]",
                                 "Flow Rate (ml/hr)", False)
         # self.graph.set_axes_limits(0, 100, -1*pow(2,23), pow(2,23), -1500, 1500)
@@ -457,10 +457,10 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
 
         self.clock.advance_number_of_ticks(lost_entries + 1)
         self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), honeywell_flow, sma_flow,
-                                 ema_flow)
+                                 ema_flow, self.LD20_corrected_value)
 
         data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow),
-                self.float_to_string(sma_flow), self.float_to_string(ema_flow)]
+                self.float_to_string(sma_flow), self.float_to_string(ema_flow), self.LD20_corrected_value]
 
         self.reg_pts.append(honeywell_flow)
         self.sma_pts.append(sma_flow)

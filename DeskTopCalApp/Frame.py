@@ -616,9 +616,11 @@ class Input_Panel:
         self.test_panel.grid(row=1, column=1, sticky=tk.S, padx=(15, 15), rowspan=1)
 
         self.save_fig_pb = tk.Button(self.test_panel, text="Save Plot", command=self.save_plot)
+        self.autoscale_pb = tk.Button(self.test_panel, text="Autoscale", command=self.autoscale_plot)
         self.average_monitor = tk.Label(self.test_panel, text="functional", font=("Helvetica", 14), background='white', justify='left')
 
-        self.save_fig_pb.place(x=350, y=50)
+        self.autoscale_pb.place(x=350, y=50)
+        self.save_fig_pb.place(x=350, y=80)
         self.average_monitor.place(x=10, y=10)
 
         self.update_average_monitor()
@@ -634,6 +636,11 @@ class Input_Panel:
 
         # updates the monitor
         self.average_monitor["text"] = text
+
+    def autoscale_plot(self):
+        y_min = min(self.data_handler.reg_pts)
+        y_max = max(self.data_handler.reg_pts)
+        self.data_handler.graph.set_axes_limits(0, 0, y_min, y_max)
 
     def save_plot(self):
 
@@ -670,7 +677,7 @@ class Logo_Title:
 class Data_Smoothing():
     def __init__(self, parent, title):
         self.smoothing_settings = {}  # A dictionary of the smoothing settings given by the user
-        print('right')
+
         self.module = Module(parent, title, 280, 310)
         self.regular_waveform = Check_Button(self.module, 'Actual Waveform', val=1)
         self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform', val=1)
