@@ -670,7 +670,7 @@ class Logo_Title:
 class Data_Smoothing():
     def __init__(self, parent, title):
         self.smoothing_settings = {}  # A dictionary of the smoothing settings given by the user
-
+        print('right')
         self.module = Module(parent, title, 280, 310)
         self.regular_waveform = Check_Button(self.module, 'Actual Waveform', val=1)
         self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform', val=1)
