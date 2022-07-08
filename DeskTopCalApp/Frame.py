@@ -207,7 +207,7 @@ class Input_Panel:
         self.pb_connect.place(10, 65)
         self.ic_fc_status.place(10, 95)
         self.cb_sensor_data_type.set_index(2)
-        self.ti_sensor_data_freq.set("50")
+        self.ti_sensor_data_freq.set("1000")
 
         self.fram_control = Module(self.input_panel, 'Fram Test Control', 180, 275)
         self.pb_coeffs_create = Push_Button(self.fram_control, 'Create Coeffs', self.callback_fram_create_coeffs)
