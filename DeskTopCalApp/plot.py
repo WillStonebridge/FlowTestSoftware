@@ -231,6 +231,13 @@ class Data_Plot_Smoothing(Data_Plot3):
         self.y_min = y_min
         self.y_max = y_max
 
+    def append_values(self, x, y1, y2, y3, y4):
+        self.x_container.append(x)
+        self.y1_container.append(y1)
+        self.y2_container.append(y2)
+        self.y3_container.append(y3)
+        self.y4_container.append(y4)
+
     def update_plot(self, settings):
         self.sub_plot_1.clear()
         self.sub_plot_2.clear()

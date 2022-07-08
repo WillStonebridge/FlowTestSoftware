@@ -403,13 +403,14 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.honeywell_raw_value = collections.deque(maxlen=self.max_buffer_len)
         self.honeywell_corrected_value = collections.deque(maxlen=self.max_buffer_len)
         self.LD20_corrected_value = collections.deque(maxlen=self.max_buffer_len)
+        self.thingy = collections.deque(maxlen=self.max_buffer_len)
         self.time_points = collections.deque(maxlen=self.max_buffer_len)
 
         #        self.graph = Data_Plot(app, self.time_points, self.honeywell_raw_value, self.LD20_corrected_value,
         #                               "Plot", "Elapsed time [seconds]", "Honeywell Sensor Raw Value [Red]",
         #                               "LD20 Corrected Flow Value [ml/hr] [Blue]", False)
         self.graph = Data_Plot_Smoothing(app, self.time_points, self.honeywell_raw_value, self.LD20_corrected_value,
-                                self.honeywell_corrected_value, self.LD20_corrected_value,
+                                self.honeywell_corrected_value, self.thingy,
                                 "Flow Waveform", "Elapsed time [seconds]",
                                 "Flow Rate (ml/hr)", False)
         # self.graph.set_axes_limits(0, 100, -1*pow(2,23), pow(2,23), -1500, 1500)
@@ -455,12 +456,14 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         ema_flow = moving_average.EMA(honeywell_flow, self.smoothing_settings)
         self.smoothing_settings['previous_ema'] = ema_flow
 
+        self.tempo = self.sensirion_flow
         self.clock.advance_number_of_ticks(lost_entries + 1)
         self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), honeywell_flow, sma_flow,
-                                 ema_flow, self.LD20_corrected_value)
+                                 ema_flow, self.sensirion_flow/20.0)
 
         data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow),
-                self.float_to_string(sma_flow), self.float_to_string(ema_flow), self.LD20_corrected_value]
+                self.float_to_string(sma_flow), self.float_to_string(ema_flow),
+                self.float_to_string(self.sensirion_flow/20.0)]
 
         self.reg_pts.append(honeywell_flow)
         self.sma_pts.append(sma_flow)
