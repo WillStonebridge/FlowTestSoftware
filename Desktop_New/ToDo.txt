@@ -1,0 +1,5 @@
+-Decreament current flow point
+-Improve warm up draws Implementation
+-Make executable
+-Save data simuletenuosly
+

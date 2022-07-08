@@ -1,0 +1,5 @@
+print("44 65 73 6B 74 6F 70 30 32 2D 2D 2D 2D 2D 2D 2D 9F 04")
+file = open("Data files\Char Test Data\Desktop02-------.dat", "rb")
+number = list(file.read(16))
+print("".join("{:02x} ".format(x) for x in number))
+file.close()
