@@ -23,6 +23,7 @@ from flow_controllerPolo import *
 from mavlink_interface import *
 from plot import *
 from test_config import *
+from pathlib import Path
 
 
 class Main_Application(tk.Frame):
@@ -505,7 +506,16 @@ class Input_Panel:
         self.connect_sensor()
 
     def callback_control_start_test(self):
-        self.start_monitor_test()
+        chk_file = Path(self.log_file + "__0.csv")
+
+        if self.log_file == "Data files" or not chk_file.is_file():
+            self.start_monitor_test()
+        else:
+            message = "The log file location: " + self.log_file + " is currently occupied. Overwrite?"
+            overwrite = tk.messagebox.askokcancel("Log File Location Occupied", message)
+
+            if overwrite:
+                self.start_monitor_test()
 
     def callback_control_stop_test(self):
         self.stop_monitor_test()
