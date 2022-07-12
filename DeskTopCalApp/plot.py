@@ -175,8 +175,9 @@ class Data_Plot3:
         self.canvas.draw()
 
 class Data_Plot_Smoothing(Data_Plot3):
-    def __init__(self, parent, x_container, y1_container, y2_container, y3_container, y4_container, title, x_label, y_label,
-                 is_static=True):
+    def __init__(self, parent, x_container, y1_container, y2_container, y3_container, y4_container, y5_container, title,
+                 x_label, y_label, is_static=True):
+
         self.parent = parent
 
         self.figure = Figure(figsize=(8, 5), dpi=100)
@@ -184,6 +185,7 @@ class Data_Plot_Smoothing(Data_Plot3):
         self.sub_plot_2 = self.sub_plot_1.twinx()
         self.sub_plot_3 = self.sub_plot_1.twinx()
         self.sub_plot_4 = self.sub_plot_1.twinx()
+        self.sub_plot_5 = self.sub_plot_1.twinx()
 
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.parent)
         self.canvas.get_tk_widget().grid(row=0, column=1, sticky=tk.NW, padx=(10, 10), pady=(0, 0))
@@ -196,6 +198,7 @@ class Data_Plot_Smoothing(Data_Plot3):
         self.y2_container = y2_container
         self.y3_container = y3_container
         self.y4_container = y4_container
+        self.y5_container = y5_container
 
         self.title = title
         self.x_label = x_label
@@ -220,6 +223,7 @@ class Data_Plot_Smoothing(Data_Plot3):
         self.sub_plot_2.set_ylim(self.y_min, self.y_max)
         self.sub_plot_3.set_ylim(self.y_min, self.y_max)
         self.sub_plot_4.set_ylim(self.y_min, self.y_max)
+        self.sub_plot_5.set_ylim(self.y_min, self.y_max)
 
         if self.is_static == True:
             self.sub_plot_1.set_xlim(self.x_min, self.x_max)
@@ -231,18 +235,20 @@ class Data_Plot_Smoothing(Data_Plot3):
         self.y_min = y_min
         self.y_max = y_max
 
-    def append_values(self, x, y1, y2, y3, y4):
+    def append_values(self, x, y1, y2, y3, y4, y5):
         self.x_container.append(x)
         self.y1_container.append(y1)
         self.y2_container.append(y2)
         self.y3_container.append(y3)
         self.y4_container.append(y4)
+        self.y5_container.append(y5)
 
     def update_plot(self, settings):
         self.sub_plot_1.clear()
         self.sub_plot_2.clear()
         self.sub_plot_3.clear()
         self.sub_plot_4.clear()
+        self.sub_plot_5.clear()
 
         self.resize_plot_axes_limits(settings)
         self.decorate_plot()
@@ -253,6 +259,8 @@ class Data_Plot_Smoothing(Data_Plot3):
             self.sub_plot_2.plot(self.x_container, self.y2_container, color='blue')
         if(settings['ema_active']):
             self.sub_plot_3.plot(self.x_container, self.y3_container, color='green')
+        if (settings['rem_active']):
+            self.sub_plot_5.plot(self.x_container, self.y5_container, color='c')
         self.sub_plot_4.plot(self.x_container, self.y4_container, color='m')
 
         if len(self.x_container) > 0:

@@ -376,6 +376,8 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
     def __init__(self, app, folder_name, sampling_frequency, time_period_to_display_data, smoothing_settings=None):
         self.sampling_frequency = sampling_frequency
         self.smoothing_settings = smoothing_settings
+        self.smoothing_settings['last_rem_time'] = 0
+        self.smoothing_settings['last_rem'] = 0
         self.max_buffer_len = int(time_period_to_display_data * self.sampling_frequency)
 
         self.clock = Time_Clock(self.sampling_frequency)
@@ -388,7 +390,7 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
                 time.strftime("%d %b %Y %H_%M_%S", time.localtime()))
 
         self.discrete_data_fields = ['Time [ms]', 'Measured Flow', 'Simple Moving Average Flow',
-                                     'Exponential Moving Average Flow', 'LD20 Flow']
+                                     'Exponential Moving Average Flow', 'Riemann Flow' 'LD20 Flow']
 
         """OLD DATA FIELDS
         self.discrete_data_fields = ['Time [ms]', 'Timestamp', 'Raw Value', 'Corrected Value', 'Temperature Value',
@@ -404,13 +406,14 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.honeywell_corrected_value = collections.deque(maxlen=self.max_buffer_len)
         self.LD20_corrected_value = collections.deque(maxlen=self.max_buffer_len)
         self.thingy = collections.deque(maxlen=self.max_buffer_len)
+        self.rem_vals = collections.deque(maxlen=self.max_buffer_len)
         self.time_points = collections.deque(maxlen=self.max_buffer_len)
 
         #        self.graph = Data_Plot(app, self.time_points, self.honeywell_raw_value, self.LD20_corrected_value,
         #                               "Plot", "Elapsed time [seconds]", "Honeywell Sensor Raw Value [Red]",
         #                               "LD20 Corrected Flow Value [ml/hr] [Blue]", False)
         self.graph = Data_Plot_Smoothing(app, self.time_points, self.honeywell_raw_value, self.LD20_corrected_value,
-                                self.honeywell_corrected_value, self.thingy,
+                                self.honeywell_corrected_value, self.thingy, self.rem_vals,
                                 "Flow Waveform", "Elapsed time [seconds]",
                                 "Flow Rate (ml/hr)", False)
         # self.graph.set_axes_limits(0, 100, -1*pow(2,23), pow(2,23), -1500, 1500)
@@ -429,8 +432,9 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         self.reg_pts = []
         self.ema_pts = []
         self.sma_pts = []
+        self.rem_pts = []
         self.test_packet = {"time" : '0:00',
-                            "reg_avg" : '0', "sma_avg" : '0', "ema_avg" : '0'}
+                            "reg_avg" : '0', "sma_avg" : '0', "ema_avg" : '0', "rem_avg" : '0'}
 
     def close_files(self):
         self.discrete_data_logger.close_csv()
@@ -456,18 +460,28 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
         ema_flow = moving_average.EMA(honeywell_flow, self.smoothing_settings)
         self.smoothing_settings['previous_ema'] = ema_flow
 
-        self.tempo = self.sensirion_flow
+        riemann_flow = 0
+        if self.clock.get_elapsed_milli_sec() - self.smoothing_settings['last_rem_time'] > self.smoothing_settings['rem_width'] or self.smoothing_settings['last_rem_time'] == 0:
+            riemann_flow = honeywell_flow
+            self.smoothing_settings['last_rem'] = riemann_flow
+            self.smoothing_settings['last_rem_time'] = self.clock.get_elapsed_milli_sec()
+        else:
+            riemann_flow = self.smoothing_settings['last_rem']
+
         self.clock.advance_number_of_ticks(lost_entries + 1)
         self.graph.append_values(float(self.clock.get_elapsed_milli_sec() / 1000.0), honeywell_flow, sma_flow,
-                                 ema_flow, self.sensirion_flow/20.0)
+                                 ema_flow, self.sensirion_flow/20.0, riemann_flow)
+
+
 
         data = [str(self.clock.get_elapsed_milli_sec()), self.float_to_string(honeywell_flow),
-                self.float_to_string(sma_flow), self.float_to_string(ema_flow),
+                self.float_to_string(sma_flow), self.float_to_string(ema_flow), self.float_to_string(riemann_flow),
                 self.float_to_string(self.sensirion_flow/20.0)]
 
         self.reg_pts.append(honeywell_flow)
         self.sma_pts.append(sma_flow)
         self.ema_pts.append(ema_flow)
+        self.rem_pts.append(riemann_flow)
 
         if self.clock.get_elapsed_milli_sec() % 2000 == 0:
             seconds = self.clock.total_elapsed_ms / 1000
@@ -481,7 +495,8 @@ class Monitor_Test_Data_Handler(Interface_Data_Handler):
 
             temp_packet = {"time": time, "reg_avg": str(sum(self.sma_pts) / len(self.sma_pts))[0:6],
                            "sma_avg": str(sum(self.sma_pts) / len(self.sma_pts))[0:6],
-                           "ema_avg": str(sum(self.ema_pts) / len(self.ema_pts))[0:6]}
+                           "ema_avg": str(sum(self.ema_pts) / len(self.ema_pts))[0:6],
+                           "rem_avg": str(sum(self.rem_pts) / len(self.rem_pts))[0:6]}
 
             self.test_packet = temp_packet
 

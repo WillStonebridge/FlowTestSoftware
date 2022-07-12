@@ -641,8 +641,8 @@ class Input_Panel:
 
         # formats the data received from the packet
         text = "TIME: " + packet["time"] + "\n" + "Actual Average: " + packet[
-            "reg_avg"] + " ml/hr\n" + "SMA Average: " + packet["sma_avg"] + " ml/hr\n" + "EMA Average: " + packet[
-                   "ema_avg"] + " ml/hr"
+            "reg_avg"] + " ml/hr\n" + "EMA Average: " + packet[
+                   "ema_avg"] + " ml/hr\n" + "Riemann Average: " + packet["rem_avg"] + " ml/hr"
 
         # updates the monitor
         self.average_monitor["text"] = text
@@ -690,27 +690,34 @@ class Data_Smoothing():
 
         self.module = Module(parent, title, 280, 310)
         self.regular_waveform = Check_Button(self.module, 'Actual Waveform', val=1)
-        self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform', val=1)
+        self.sma_waveform = Check_Button(self.module, 'Simple Moving Average Waveform')
         self.ema_waveform = Check_Button(self.module, 'Exponential Moving Average Waveform', val=1)
-        self.sma_k = Text_Input(self.module, "Average Window")
+        self.rem_waveform = Check_Button(self.module, 'Riemann Waveform', val=1)
+        self.sma_k = Text_Input(self.module, "Average Window (points)")
         self.ema_alpha = Text_Input(self.module, "Alpha")
+        self.rem_width = Text_Input(self.module, "Width (ms)")
         self.config_button = Push_Button(self.module, "Configure", self.configure_settings)
 
         x = 10
         self.regular_waveform.place(10, x)
-        x += 20
+        x += 30
         self.sma_waveform.place(10, x)
         x += 20
         self.sma_k.place(10, x)
-        x += 70
+        x += 50
         self.ema_waveform.place(10, x)
         x += 20
         self.ema_alpha.place(10, x)
-        x += 60
+        x += 50
+        self.rem_waveform.place(10, x)
+        x += 20
+        self.rem_width.place(10, x)
+        x += 50
         self.config_button.place(10, x)
 
         self.sma_k.set("10")
-        self.ema_alpha.set("0.5")
+        self.ema_alpha.set("0.001")
+        self.rem_width.set("1000")
 
         self.smoothing_settings['sma_k'] = int(self.sma_k.get())
         self.smoothing_settings['prev_k_points'] = []
@@ -725,6 +732,8 @@ class Data_Smoothing():
         self.smoothing_settings['reg_active'] = self.regular_waveform.get_value()
         self.smoothing_settings['sma_active'] = self.sma_waveform.get_value()
         self.smoothing_settings['ema_active'] = self.ema_waveform.get_value()
+        self.smoothing_settings['rem_active'] = self.rem_waveform.get_value()
+        self.smoothing_settings['rem_width'] = float(self.rem_width.get())
 
         #The below settings will only be changed if the value inside their box is different
 
